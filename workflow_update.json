@@ -1,0 +1,232 @@
+{
+  "name": "agentepodologo1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inicial",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "8edd986e-195c-4d61-85a1-a8334b02c2c7",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "Eres una recepcionista virtual experta para una clínica de podología. Tu objetivo es agendar citas de manera eficiente y amable.\n\nFlujo de trabajo:\n1. Saluda al usuario.\n2. Si desea agendar una cita:\n   a. Consulta los servicios disponibles usando 'get_services'.\n   b. Consulta los profesionales disponibles usando 'get_professionals'.\n   c. Consulta las sedes disponibles usando 'get_sedes'.\n   d. Solicita al usuario el servicio, profesional, sede y fecha/hora deseada.\n   e. Solicita el número de documento del paciente.\n   f. Verifica si el paciente existe o regístralo usando 'register_patient'.\n   g. Intenta agendar la cita usando 'book_appointment'.\n3. Confirma la cita al usuario con los detalles.\n4. Responde siempre de forma concisa y profesional."
+        }
+      },
+      "type": "n8n-nodes-base.aiAgent",
+      "typeVersion": 1.1,
+      "position": [220, 0],
+      "id": "ai_agent_node",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "redisHost": "localhost",
+        "redisPort": 6379,
+        "database": 0
+      },
+      "type": "n8n-nodes-base.memoryRedis",
+      "typeVersion": 1,
+      "position": [220, 200],
+      "id": "redis_memory",
+      "name": "Redis Memory"
+    },
+    {
+      "parameters": {
+        "name": "get_services",
+        "description": "Obtiene la lista de servicios disponibles en la clínica",
+        "url": "http://localhost:8000/api/v1/appointments/services",
+        "method": "GET"
+      },
+      "type": "n8n-nodes-base.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [400, -100],
+      "id": "tool_services",
+      "name": "get_services"
+    },
+    {
+      "parameters": {
+        "name": "get_professionals",
+        "description": "Obtiene la lista de profesionales disponibles",
+        "url": "http://localhost:8000/api/v1/appointments/professionals",
+        "method": "GET"
+      },
+      "type": "n8n-nodes-base.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [400, 0],
+      "id": "tool_professionals",
+      "name": "get_professionals"
+    },
+    {
+      "parameters": {
+        "name": "get_sedes",
+        "description": "Obtiene la lista de sedes disponibles",
+        "url": "http://localhost:8000/api/v1/appointments/sedes",
+        "method": "GET"
+      },
+      "type": "n8n-nodes-base.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [400, 100],
+      "id": "tool_sedes",
+      "name": "get_sedes"
+    },
+    {
+      "parameters": {
+        "name": "register_patient",
+        "description": "Registra un nuevo paciente. Requiere tipo_documento, documento, nombre, apellido, telefono, consentimiento (true).",
+        "url": "http://localhost:8000/api/v1/patients/register",
+        "method": "POST"
+      },
+      "type": "n8n-nodes-base.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [400, 200],
+      "id": "tool_register",
+      "name": "register_patient"
+    },
+    {
+      "parameters": {
+        "name": "book_appointment",
+        "description": "Agenda una cita. Requiere documento, fecha_hora (Y-m-d H:i), servicio_id, profesional_id, sede_id.",
+        "url": "http://localhost:8000/api/v1/appointments",
+        "method": "POST"
+      },
+      "type": "n8n-nodes-base.toolHttpRequest",
+      "typeVersion": 1,
+      "position": [400, 300],
+      "id": "tool_book",
+      "name": "book_appointment"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evoltionapi.devsoftai.com//message/sendText/testpruagnet",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "mi_api_key_segura"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ .from }}"
+            },
+            {
+              "name": "text",
+              "value": "={{ .output }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [600, 0],
+      "id": "evolution_api",
+      "name": "Evolution API"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Evolution API",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Redis Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_services": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_professionals": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "get_sedes": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "register_patient": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "book_appointment": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

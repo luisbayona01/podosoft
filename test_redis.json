@@ -1,0 +1,17 @@
+{
+  "name": "test_redis",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [0, 0],
+      "id": "redis_id",
+      "name": "Redis"
+    }
+  ],
+  "connections": {},
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

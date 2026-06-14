@@ -1,0 +1,156 @@
+{
+  "name": "agentepodologo1",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "inicial",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0],
+      "id": "8edd986e-195c-4d61-85a1-a8334b02c2c7",
+      "name": "Webhook"
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "key": "={{ $json.body.data.key.remoteJid }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [220, 0],
+      "id": "redis_get_state",
+      "name": "Get User State"
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.value }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "WAITING_SERVICE",
+              "output": 1
+            },
+            {
+              "value2": "WAITING_PROFESSIONAL",
+              "output": 2
+            },
+            {
+              "value2": "WAITING_DATE",
+              "output": 3
+            },
+            {
+              "value2": "WAITING_DOC",
+              "output": 4
+            }
+          ]
+        },
+        "fallbackOutput": 0
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [440, 0],
+      "id": "state_router",
+      "name": "State Router"
+    },
+    {
+      "parameters": {
+        "operation": "set",
+        "key": "={{ $node[\"Webhook\"].json.body.data.key.remoteJid }}",
+        "value": "WAITING_SERVICE",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [660, -200],
+      "id": "set_waiting_service",
+      "name": "Set State: Waiting Service"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://evoltionapi.devsoftai.com//message/sendText/testpruagnet",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "mi_api_key_segura"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "number",
+              "value": "={{ $node[\"Webhook\"].json.body.data.key.remoteJid }}"
+            },
+            {
+              "name": "text",
+              "value": "Hola! Bienvenido a la clínica de podología. Para agendar una cita, por favor dime qué servicio necesitas."
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [880, -200],
+      "id": "reply_greeting",
+      "name": "Reply Greeting"
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Get User State",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User State": {
+      "main": [
+        [
+          {
+            "node": "State Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "State Router": {
+      "main": [
+        [
+          {
+            "node": "Set State: Waiting Service",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Set State: Waiting Service": {
+      "main": [
+        [
+          {
+            "node": "Reply Greeting",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
