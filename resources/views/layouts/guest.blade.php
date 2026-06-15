@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ config('app.name', 'PodoSoft') }}</title>
+    <link rel="icon" type="image/x-icon" href="{{ asset('logo.ico') }}">
     {{-- @vite(['resources/css/app.css', 'resources/js/app.js']) --}}
     <link rel="stylesheet" href="{{ asset('build/assets/app-B9F4AZFd.css') }}">
     <script src="{{ asset('build/assets/app-UyRVujZY.js') }}" defer></script>
