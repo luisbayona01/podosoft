@@ -9,48 +9,221 @@ use App\Models\Sede;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\QueryException;
 
 class Onboarding extends Component
 {
     public $step = 1;
 
-    // Step 1: Clinic Info
-    public $clinic_name;
-    public $clinic_nit;
-    public $clinic_phone;
-    public $clinic_email;
-    public $clinic_city;
-    public $clinic_address;
-    public $clinic_logo;
+    public $clinic_name = '';
+    public $clinic_nit = '';
+    public $clinic_phone = '';
+    public $clinic_email = '';
+    public $clinic_city = '';
+    public $clinic_address = '';
+    public $clinic_logo = '';
 
-    // Step 2: Admin Info
-    public $admin_name;
-    public $admin_apellido;
-    public $admin_document;
-    public $admin_licencia;
-    public $admin_email;
-    public $admin_phone;
-    public $admin_password;
-    public $admin_password_confirmation;
+    public $admin_name = '';
+    public $admin_apellido = '';
+    public $admin_document = '';
+    public $admin_licencia = '';
+    public $admin_email = '';
+    public $admin_phone = '';
+    public $admin_password = '';
+    public $admin_password_confirmation = '';
+
+    public function getClinicNameProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_name'] ?? '';
+        }
+        return $this->clinic_name;
+    }
+
+    public function getClinicNitProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_nit'] ?? '';
+        }
+        return $this->clinic_nit;
+    }
+
+    public function getClinicPhoneProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_phone'] ?? '';
+        }
+        return $this->clinic_phone;
+    }
+
+    public function getClinicEmailProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_email'] ?? '';
+        }
+        return $this->clinic_email;
+    }
+
+    public function getClinicCityProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_city'] ?? '';
+        }
+        return $this->clinic_city;
+    }
+
+    public function getClinicAddressProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_clinic')) {
+            return Session::get('onboarding_clinic')['clinic_address'] ?? '';
+        }
+        return $this->clinic_address;
+    }
+
+    public function getAdminNameProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_name'] ?? '';
+        }
+        return $this->admin_name;
+    }
+
+    public function getAdminApellidoProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_apellido'] ?? '';
+        }
+        return $this->admin_apellido;
+    }
+
+    public function getAdminDocumentProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_document'] ?? '';
+        }
+        return $this->admin_document;
+    }
+
+    public function getAdminLicenciaProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_licencia'] ?? '';
+        }
+        return $this->admin_licencia;
+    }
+
+    public function getAdminEmailProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_email'] ?? '';
+        }
+        return $this->admin_email;
+    }
+
+    public function getAdminPhoneProperty()
+    {
+        if ($this->step === 3 && Session::has('onboarding_admin')) {
+            return Session::get('onboarding_admin')['admin_phone'] ?? '';
+        }
+        return $this->admin_phone;
+    }
 
     protected $rules = [
         'clinic_name' => 'required|string|max:255',
         'clinic_nit' => 'required|string|max:50',
-        'clinic_phone' => 'required|regex:/^[0-9]+$/|max:20',
+        'clinic_phone' => 'required|string|min:7|max:20',
         'clinic_email' => 'required|email|max:255',
         'clinic_city' => 'required|string|max:100',
         'clinic_address' => 'required|string|max:500',
-
         'admin_name' => 'required|string|max:255',
         'admin_apellido' => 'required|string|max:255',
-        'admin_document' => 'required|regex:/^[0-9]+$/|max:50',
+        'admin_document' => 'required|string|min:5|max:50',
         'admin_licencia' => 'required|string|max:50',
-        'admin_email' => 'required|email|max:255|unique:users,email',
-        'admin_phone' => 'required|regex:/^[0-9]+$/|max:20',
+        'admin_email' => 'required|email|max:255',
+        'admin_phone' => 'required|string|min:7|max:20',
         'admin_password' => 'required|string|min:8|confirmed',
     ];
+
+    protected function messages(): array
+    {
+        return [
+            'clinic_name.required' => 'El nombre de la clínica es obligatorio.',
+            'clinic_nit.required' => 'El NIT/RUT es obligatorio.',
+            'clinic_phone.required' => 'El teléfono es obligatorio.',
+            'clinic_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
+            'clinic_email.required' => 'El correo electrónico es obligatorio.',
+            'clinic_email.email' => 'Ingrese un correo electrónico válido.',
+            'clinic_city.required' => 'La ciudad es obligatoria.',
+            'clinic_address.required' => 'La dirección es obligatoria.',
+            'admin_name.required' => 'El nombre es obligatorio.',
+            'admin_apellido.required' => 'El apellido es obligatorio.',
+            'admin_document.required' => 'El documento de identidad es obligatorio.',
+            'admin_document.min' => 'El documento debe tener al menos 5 dígitos.',
+            'admin_licencia.required' => 'El número de licencia es obligatorio.',
+            'admin_email.required' => 'El correo electrónico es obligatorio.',
+            'admin_email.email' => 'Ingrese un correo electrónico válido.',
+            'admin_phone.required' => 'El teléfono es obligatorio.',
+            'admin_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
+            'admin_password.required' => 'La contraseña es obligatoria.',
+            'admin_password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'admin_password.confirmed' => 'La confirmación de contraseña no coincide.',
+        ];
+    }
+
+    public function mount()
+    {
+        $this->loadFromSession();
+    }
+
+    protected function loadFromSession(): void
+    {
+        if (Session::has('onboarding_clinic')) {
+            $clinicData = Session::get('onboarding_clinic');
+            $this->clinic_name = $clinicData['clinic_name'] ?? '';
+            $this->clinic_nit = $clinicData['clinic_nit'] ?? '';
+            $this->clinic_phone = $clinicData['clinic_phone'] ?? '';
+            $this->clinic_email = $clinicData['clinic_email'] ?? '';
+            $this->clinic_city = $clinicData['clinic_city'] ?? '';
+            $this->clinic_address = $clinicData['clinic_address'] ?? '';
+        }
+
+        if (Session::has('onboarding_admin')) {
+            $adminData = Session::get('onboarding_admin');
+            $this->admin_name = $adminData['admin_name'] ?? '';
+            $this->admin_apellido = $adminData['admin_apellido'] ?? '';
+            $this->admin_document = $adminData['admin_document'] ?? '';
+            $this->admin_licencia = $adminData['admin_licencia'] ?? '';
+            $this->admin_email = $adminData['admin_email'] ?? '';
+            $this->admin_phone = $adminData['admin_phone'] ?? '';
+        }
+    }
+
+    protected function saveClinicToSession(): void
+    {
+        Session::put('onboarding_clinic', [
+            'clinic_name' => $this->clinic_name,
+            'clinic_nit' => $this->clinic_nit,
+            'clinic_phone' => $this->clinic_phone,
+            'clinic_email' => $this->clinic_email,
+            'clinic_city' => $this->clinic_city,
+            'clinic_address' => $this->clinic_address,
+        ]);
+    }
+
+    protected function saveAdminToSession(): void
+    {
+        Session::put('onboarding_admin', [
+            'admin_name' => $this->admin_name,
+            'admin_apellido' => $this->admin_apellido,
+            'admin_document' => $this->admin_document,
+            'admin_licencia' => $this->admin_licencia,
+            'admin_email' => $this->admin_email,
+            'admin_phone' => $this->admin_phone,
+        ]);
+    }
 
     public function nextStep()
     {
@@ -58,110 +231,254 @@ class Onboarding extends Component
             $this->validate([
                 'clinic_name' => 'required|string|max:255',
                 'clinic_nit' => 'required|string|max:50',
-                'clinic_phone' => 'required|regex:/^[0-9]+$/|max:20',
+                'clinic_phone' => 'required|string|min:7|max:20',
                 'clinic_email' => 'required|email|max:255',
                 'clinic_city' => 'required|string|max:100',
                 'clinic_address' => 'required|string|max:500',
             ]);
+            $this->saveClinicToSession();
         } elseif ($this->step == 2) {
             $this->validate([
                 'admin_name' => 'required|string|max:255',
                 'admin_apellido' => 'required|string|max:255',
-                'admin_document' => 'required|regex:/^[0-9]+$/|max:50',
+                'admin_document' => 'required|string|min:5|max:50',
                 'admin_licencia' => 'required|string|max:50',
-                'admin_email' => 'required|email|max:255|unique:users,email',
-                'admin_phone' => 'required|regex:/^[0-9]+$/|max:20',
+                'admin_email' => 'required|email|max:255',
+                'admin_phone' => 'required|string|min:7|max:20',
                 'admin_password' => 'required|string|min:8|confirmed',
             ]);
+            $this->saveAdminToSession();
         }
 
-        $this->step++;
+        if ($this->getErrorBag()->isEmpty()) {
+            $this->step++;
+        }
     }
 
     public function prevStep()
     {
-        $this->step--;
+        if ($this->step > 1) {
+            $this->step--;
+        }
+    }
+
+    public function goToStep(int $step)
+    {
+        if ($step >= 1 && $step < $this->step) {
+            $this->step = $step;
+        }
     }
 
     public function register()
     {
-        //$this->validate($this->rules);
-        //dd($this->rules);
+        if ($this->step !== 3) {
+            $this->addError('registration', 'Por favor completa todos los pasos antes de finalizar.');
+            return null;
+        }
+
+        $this->loadFromSession();
+        $this->validate($this->rules);
+
         try {
-            DB::transaction(function () {
-                $tenant = $this->executeStep('Tenant', function () {
-                    return Tenant::create([
-                        'nombre' => $this->clinic_name,
-                        'slug' => Str::slug($this->clinic_name),
-                        'nit' => $this->clinic_nit,
-                        'telefono' => $this->clinic_phone,
-                        'email' => $this->clinic_email,
-                        'direccion' => $this->clinic_address,
-                        'activo' => true,
-                    ]);
-                });
+            $user = DB::transaction(function () {
+                $tenant = $this->createTenant();
+                $professional = $this->createProfessional($tenant);
+                $user = $this->createUser($tenant, $professional);
+                $this->assignAdminRole($user);
+                $this->createDefaultSede($tenant);
 
-                $professional = $this->executeStep('Profesional', function () use ($tenant) {
-                    return Profesional::create([
-                        'tenant_id' => $tenant->id,
-                        'nombre' => $this->admin_name,
-                        'apellido' => $this->admin_apellido,
-                        'documento' => $this->admin_document,
-                        'numero_licencia' => $this->admin_licencia,
-                        'telefono' => $this->admin_phone,
-                        'email' => $this->admin_email,
-                        'activo' => true,
-                    ]);
-                });
-
-                $user = $this->executeStep('Usuario', function () use ($tenant, $professional) {
-                    return User::create([
-                        'name' => $this->admin_name,
-                        'email' => $this->admin_email,
-                        'password' => Hash::make($this->admin_password),
-                        'tenant_id' => $tenant->id,
-                        'documento' => $this->admin_document,
-                        'telefono' => $this->admin_phone,
-                        'professional_id' => $professional->id,
-                    ]);
-                });
-
-                $this->executeStep('Asignación Rol', function () use ($user) {
-                    $user->assignRole('Administrador');
-                });
-
-                $this->executeStep('Sede', function () use ($tenant) {
-                    return Sede::create([
-                        'tenant_id' => $tenant->id,
-                        'nombre' => 'Sede Principal',
-                        'direccion' => $this->clinic_address,
-                        'activo' => true,
-                    ]);
-                });
+                return $user;
             });
+
+            Session::forget('onboarding_clinic');
+            Session::forget('onboarding_admin');
+
             Auth::login($user);
             return redirect()->to('/dashboard');
+        } catch (QueryException $e) {
+            $this->handleDatabaseException($e);
+            return null;
         } catch (\Throwable $e) {
-            \Log::error('Registration process failed: ' . $e->getMessage());
-            $this->addError('registration', 'Ocurrió un error durante el registro: ' . $e->getMessage());
+            \Log::error('Registration process failed: ' . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+                'trace' => $e->getTraceAsString(),
+            ]);
+            $this->handleGenericException($e);
             return null;
         }
     }
 
-    private function executeStep(string $stepName, callable $callback)
+    protected function handleGenericException(\Throwable $e): void
     {
-        \Log::info("Executing registration step: $stepName");
-        try {
-            $result = $callback();
-            \Log::info("Successfully completed registration step: $stepName");
-            return $result;
-        } catch (\Throwable $e) {
-            \Log::error("Error in registration step [$stepName]: " . $e->getMessage(), [
-                'file' => $e->getFile(),
-                'line' => $e->getLine(),
-            ]);
-            throw new \Exception("Error en el paso [$stepName]: " . $e->getMessage(), 0, $e);
+        $message = $e->getMessage();
+
+        if (str_contains(strtolower($message), 'roles') ||
+            str_contains(strtolower($message), 'table') && str_contains(strtolower($message), 'doesn\'t exist') ||
+            str_contains(strtolower($message), 'assignrole') ||
+            str_contains(strtolower($message), 'spatie')) {
+            $this->addError('registration', 'Error de configuración del sistema de permisos. Por favor contacta al administrador.');
+            return;
         }
+
+        $this->addError('registration', 'Ocurrió un error inesperado: ' . $message);
+    }
+
+    protected function createTenant(): Tenant
+    {
+        $slug = $this->generateUniqueSlug(Str::slug($this->clinic_name));
+
+        return Tenant::create([
+            'nombre' => $this->clinic_name,
+            'slug' => $slug,
+            'nit' => $this->clinic_nit,
+            'telefono' => $this->clinic_phone,
+            'email' => $this->clinic_email,
+            'direccion' => $this->clinic_address,
+            'activo' => true,
+        ]);
+    }
+
+    protected function generateUniqueSlug(string $baseSlug): string
+    {
+        $slug = $baseSlug;
+        $counter = 1;
+
+        while (Tenant::where('slug', $slug)->exists()) {
+            $slug = $baseSlug . '-' . $counter;
+            $counter++;
+        }
+
+        return $slug;
+    }
+
+    protected function createProfessional(Tenant $tenant): Profesional
+    {
+        return Profesional::create([
+            'tenant_id' => $tenant->id,
+            'nombre' => $this->admin_name,
+            'apellido' => $this->admin_apellido,
+            'documento' => $this->admin_document,
+            'numero_licencia' => $this->admin_licencia,
+            'telefono' => $this->admin_phone,
+            'email' => $this->admin_email,
+            'activo' => true,
+        ]);
+    }
+
+    protected function createUser(Tenant $tenant, Profesional $professional): User
+    {
+        return User::create([
+            'name' => $this->admin_name,
+            'email' => $this->admin_email,
+            'password' => Hash::make($this->admin_password),
+            'tenant_id' => $tenant->id,
+            'documento' => $this->admin_document,
+            'telefono' => $this->admin_phone,
+            'professional_id' => $professional->id,
+        ]);
+    }
+
+    protected function assignAdminRole(User $user): void
+    {
+        $user->assignRole('Administrador');
+    }
+
+    protected function createDefaultSede(Tenant $tenant): Sede
+    {
+        return Sede::create([
+            'tenant_id' => $tenant->id,
+            'nombre' => 'Sede Principal',
+            'direccion' => $this->clinic_address,
+            'activo' => true,
+        ]);
+    }
+
+    protected function handleDatabaseException(QueryException $e): void
+    {
+        $errorCode = $e->errorInfo[1 ?? 0] ?? 0;
+        $message = $e->getMessage();
+
+        if ($errorCode === 1062) {
+            $this->handleDuplicateEntryException($message);
+            return;
+        }
+
+        if ($errorCode === 1452) {
+            $this->addError('registration', 'Error de referencia. Un registro requerido no existe.');
+            return;
+        }
+
+        if ($errorCode === 1146 || $errorCode === '42S02' || str_contains(strtolower($message), 'table') && str_contains(strtolower($message), 'doesn\'t exist')) {
+            $this->addError('registration', 'Error de configuración del sistema. Tabla de base de datos no encontrada. Contacta al administrador.');
+            return;
+        }
+
+        if ($errorCode === 1045 || $errorCode === 1049) {
+            $this->addError('registration', 'Error de conexión con la base de datos. Por favor intenta más tarde.');
+            return;
+        }
+
+        \Log::error('Database error during registration', [
+            'code' => $errorCode,
+            'message' => $message,
+            'trace' => $e->getTraceAsString(),
+        ]);
+
+        $this->addError('registration', 'Error de base de datos. Por favor intenta nuevamente.');
+    }
+
+    protected function handleDuplicateEntryException(string $message): void
+    {
+        if (str_contains($message, 'users_email_unique') || str_contains($message, 'users.email')) {
+            $this->addError('admin_email', 'Este correo electrónico ya está registrado en el sistema.');
+            $this->step = 2;
+            return;
+        }
+
+        if (str_contains($message, 'profesionales_email_unique') || str_contains($message, 'profesionales.email')) {
+            $this->addError('admin_email', 'Este correo ya está registrado como profesional.');
+            $this->step = 2;
+            return;
+        }
+
+        if (str_contains($message, 'profesionales_numero_licencia_unique') || str_contains($message, 'numero_licencia')) {
+            $this->addError('admin_licencia', 'Esta licencia profesional ya está registrada.');
+            $this->step = 2;
+            return;
+        }
+
+        if (str_contains($message, 'tenants_email_unique') || str_contains($message, 'tenants.email')) {
+            $this->addError('clinic_email', 'Este correo ya está registrado para otra clínica.');
+            $this->step = 1;
+            return;
+        }
+
+        if (str_contains($message, 'tenants_nit_unique') || str_contains($message, 'tenants.nit')) {
+            $this->addError('clinic_nit', 'Este NIT/RUT ya está registrado para otra clínica.');
+            $this->step = 1;
+            return;
+        }
+
+        if (str_contains($message, 'tenants_slug_unique') || str_contains($message, 'tenants.slug')) {
+            $this->addError('clinic_name', 'Ya existe una clínica con un nombre similar. Por favor usa otro nombre.');
+            $this->step = 1;
+            return;
+        }
+
+        if (str_contains($message, 'profesionales_documento_unique') || str_contains($message, 'profesionales.documento')) {
+            $this->addError('admin_document', 'Este documento de identidad ya está registrado.');
+            $this->step = 2;
+            return;
+        }
+
+        if (str_contains($message, 'users_documento_unique') || str_contains($message, 'users.documento')) {
+            $this->addError('admin_document', 'Este documento ya está asociado a otra cuenta.');
+            $this->step = 2;
+            return;
+        }
+
+        $this->addError('registration', 'Ya existe un registro con algunos de los datos proporcionados. Por favor verifica la información.');
     }
 
     public function render()
