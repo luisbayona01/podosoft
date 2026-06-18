@@ -23,6 +23,9 @@ use App\Livewire\FinancialsReport;
 use App\Livewire\InsumoIndex;
 use App\Livewire\InsumoCreate;
 use App\Livewire\InsumoEdit;
+use App\Livewire\ServicioIndex;
+use App\Livewire\ServicioCreate;
+use App\Livewire\ServicioEdit;
 
 Route::get('/', function () {
     return view('welcome');
