@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TenantRegistrationController;
 use App\Livewire\Dashboard;
+use App\Http\Controllers\ClinicalPhotoController;
 use App\Http\Controllers\PaymentReceiptController;
 use App\Livewire\AppointmentIndex;
 use App\Livewire\AppointmentManager;
@@ -63,6 +64,8 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', ClinicalHistoryMain::class)->name('index');
         Route::get('/create', ClinicalHistoryCreate::class)->name('create');
         Route::get('/foot-map', FootMap::class)->name('foot-map');
+        Route::get('/photo/{photo}', [ClinicalPhotoController::class, 'show'])->name('photo');
+        Route::get('/photo/{photo}/download', [ClinicalPhotoController::class, 'download'])->name('photo.download');
     });
 
     Route::prefix('financials')->name('financials.')->group(function () {
