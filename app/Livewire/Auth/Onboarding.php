@@ -9,7 +9,6 @@ use App\Models\Sede;
 use Livewire\Component;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\QueryException;
@@ -24,7 +23,6 @@ class Onboarding extends Component
     public $clinic_email = '';
     public $clinic_city = '';
     public $clinic_address = '';
-    public $clinic_logo = '';
 
     public $admin_name = '';
     public $admin_apellido = '';
@@ -34,102 +32,6 @@ class Onboarding extends Component
     public $admin_phone = '';
     public $admin_password = '';
     public $admin_password_confirmation = '';
-
-    public function getClinicNameProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_name'] ?? '';
-        }
-        return $this->clinic_name;
-    }
-
-    public function getClinicNitProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_nit'] ?? '';
-        }
-        return $this->clinic_nit;
-    }
-
-    public function getClinicPhoneProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_phone'] ?? '';
-        }
-        return $this->clinic_phone;
-    }
-
-    public function getClinicEmailProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_email'] ?? '';
-        }
-        return $this->clinic_email;
-    }
-
-    public function getClinicCityProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_city'] ?? '';
-        }
-        return $this->clinic_city;
-    }
-
-    public function getClinicAddressProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_clinic')) {
-            return Session::get('onboarding_clinic')['clinic_address'] ?? '';
-        }
-        return $this->clinic_address;
-    }
-
-    public function getAdminNameProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_name'] ?? '';
-        }
-        return $this->admin_name;
-    }
-
-    public function getAdminApellidoProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_apellido'] ?? '';
-        }
-        return $this->admin_apellido;
-    }
-
-    public function getAdminDocumentProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_document'] ?? '';
-        }
-        return $this->admin_document;
-    }
-
-    public function getAdminLicenciaProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_licencia'] ?? '';
-        }
-        return $this->admin_licencia;
-    }
-
-    public function getAdminEmailProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_email'] ?? '';
-        }
-        return $this->admin_email;
-    }
-
-    public function getAdminPhoneProperty()
-    {
-        if ($this->step === 3 && Session::has('onboarding_admin')) {
-            return Session::get('onboarding_admin')['admin_phone'] ?? '';
-        }
-        return $this->admin_phone;
-    }
 
     protected $rules = [
         'clinic_name' => 'required|string|max:255',
@@ -157,7 +59,7 @@ class Onboarding extends Component
             'clinic_email.required' => 'El correo electrónico es obligatorio.',
             'clinic_email.email' => 'Ingrese un correo electrónico válido.',
             'clinic_city.required' => 'La ciudad es obligatoria.',
-            'clinic_address.required' => 'La dirección es obligatoria.',
+            'clinic_address.required' => 'La dirección es obligatorio.',
             'admin_name.required' => 'El nombre es obligatorio.',
             'admin_apellido.required' => 'El apellido es obligatorio.',
             'admin_document.required' => 'El documento de identidad es obligatorio.',
@@ -175,59 +77,51 @@ class Onboarding extends Component
 
     public function mount()
     {
-        $this->loadFromSession();
-    }
-
-    protected function loadFromSession(): void
-    {
-        if (Session::has('onboarding_clinic')) {
-            $clinicData = Session::get('onboarding_clinic');
-            $this->clinic_name = $clinicData['clinic_name'] ?? '';
-            $this->clinic_nit = $clinicData['clinic_nit'] ?? '';
-            $this->clinic_phone = $clinicData['clinic_phone'] ?? '';
-            $this->clinic_email = $clinicData['clinic_email'] ?? '';
-            $this->clinic_city = $clinicData['clinic_city'] ?? '';
-            $this->clinic_address = $clinicData['clinic_address'] ?? '';
+        $stored = json_decode(request()->cookie('onboarding_data', '{}'), true) ?: [];
+        if (!is_array($stored)) {
+            $stored = [];
         }
 
-        if (Session::has('onboarding_admin')) {
-            $adminData = Session::get('onboarding_admin');
-            $this->admin_name = $adminData['admin_name'] ?? '';
-            $this->admin_apellido = $adminData['admin_apellido'] ?? '';
-            $this->admin_document = $adminData['admin_document'] ?? '';
-            $this->admin_licencia = $adminData['admin_licencia'] ?? '';
-            $this->admin_email = $adminData['admin_email'] ?? '';
-            $this->admin_phone = $adminData['admin_phone'] ?? '';
-        }
+        $this->clinic_name = $stored['clinic_name'] ?? '';
+        $this->clinic_nit = $stored['clinic_nit'] ?? '';
+        $this->clinic_phone = $stored['clinic_phone'] ?? '';
+        $this->clinic_email = $stored['clinic_email'] ?? '';
+        $this->clinic_city = $stored['clinic_city'] ?? '';
+        $this->clinic_address = $stored['clinic_address'] ?? '';
+        $this->admin_name = $stored['admin_name'] ?? '';
+        $this->admin_apellido = $stored['admin_apellido'] ?? '';
+        $this->admin_document = $stored['admin_document'] ?? '';
+        $this->admin_licencia = $stored['admin_licencia'] ?? '';
+        $this->admin_email = $stored['admin_email'] ?? '';
+        $this->admin_phone = $stored['admin_phone'] ?? '';
+        $this->step = $stored['step'] ?? 1;
     }
 
-    protected function saveClinicToSession(): void
+    public function saveToStorage()
     {
-        Session::put('onboarding_clinic', [
+        $data = [
+            'step' => $this->step,
             'clinic_name' => $this->clinic_name,
             'clinic_nit' => $this->clinic_nit,
             'clinic_phone' => $this->clinic_phone,
             'clinic_email' => $this->clinic_email,
             'clinic_city' => $this->clinic_city,
             'clinic_address' => $this->clinic_address,
-        ]);
-    }
-
-    protected function saveAdminToSession(): void
-    {
-        Session::put('onboarding_admin', [
             'admin_name' => $this->admin_name,
             'admin_apellido' => $this->admin_apellido,
             'admin_document' => $this->admin_document,
             'admin_licencia' => $this->admin_licencia,
             'admin_email' => $this->admin_email,
             'admin_phone' => $this->admin_phone,
-        ]);
+        ];
+
+        return response()->json(['saved' => true])
+            ->cookie('onboarding_data', json_encode($data), 60 * 24);
     }
 
     public function nextStep()
     {
-        if ($this->step == 1) {
+        if ($this->step === 1) {
             $this->validate([
                 'clinic_name' => 'required|string|max:255',
                 'clinic_nit' => 'required|string|max:50',
@@ -236,8 +130,7 @@ class Onboarding extends Component
                 'clinic_city' => 'required|string|max:100',
                 'clinic_address' => 'required|string|max:500',
             ]);
-            $this->saveClinicToSession();
-        } elseif ($this->step == 2) {
+        } elseif ($this->step === 2) {
             $this->validate([
                 'admin_name' => 'required|string|max:255',
                 'admin_apellido' => 'required|string|max:255',
@@ -247,7 +140,6 @@ class Onboarding extends Component
                 'admin_phone' => 'required|string|min:7|max:20',
                 'admin_password' => 'required|string|min:8|confirmed',
             ]);
-            $this->saveAdminToSession();
         }
 
         if ($this->getErrorBag()->isEmpty()) {
@@ -276,7 +168,6 @@ class Onboarding extends Component
             return null;
         }
 
-        $this->loadFromSession();
         $this->validate($this->rules);
 
         try {
@@ -290,10 +181,11 @@ class Onboarding extends Component
                 return $user;
             });
 
-            Session::forget('onboarding_clinic');
-            Session::forget('onboarding_admin');
-
             Auth::login($user);
+
+            response()->json(['redirect' => '/dashboard'])
+                ->cookie('onboarding_data', '', -1);
+
             return redirect()->to('/dashboard');
         } catch (QueryException $e) {
             $this->handleDatabaseException($e);

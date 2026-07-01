@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Auth\TenantRegistrationController;
 use App\Livewire\Dashboard;
@@ -33,7 +34,8 @@ Route::get('/', function () {
 });
 
 Route::get('/login', Login::class)->name('login');
-Route::get('/register', Onboarding::class)->name('register');
+Route::get('/register', function () { return view('onboarding'); })->name('register');
+Route::post('/register/submit', [OnboardingController::class, 'submit'])->name('register.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 Route::middleware(['auth'])->group(function () {
