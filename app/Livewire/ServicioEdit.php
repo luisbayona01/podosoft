@@ -39,9 +39,9 @@ class ServicioEdit extends Component
         ];
     }
 
-    public function mount($id)
+    public function mount($servicio)
     {
-        $servicio = Servicio::findOrFail($id);
+        $servicio = Servicio::findOrFail($servicio);
         $this->servicioId = $servicio->id;
         $this->nombre = $servicio->nombre;
         $this->descripcion = $servicio->descripcion;

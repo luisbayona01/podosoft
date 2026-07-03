@@ -108,6 +108,18 @@
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Agenda</span>
                         </a>
+                        <a href="{{ route('profesionales.index') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('profesionales.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('profesionales.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                                <circle cx="12" cy="7" r="4" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Profesionales</span>
+                        </a>
                         <a href="{{ route('clinical-history.index') }}"
                             :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
                             class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('clinical-history.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
@@ -164,6 +176,19 @@
                                 <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Facturación</span>
+                        </a>
+                        <a href="{{ route('servicios.index') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('servicios.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('servicios.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <path d="M12 2v20" />
+                                <path d="m17 5-5-3-5 3" />
+                                <rect width="20" height="14" x="2" y="5" rx="2" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Servicios</span>
                         </a>
                     </div>
                 </div>
