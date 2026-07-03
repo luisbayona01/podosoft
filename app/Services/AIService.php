@@ -2,17 +2,20 @@
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use OpenAI;
+use OpenAI\Client;
 use Exception;
 
 class AIService
 {
-    private string $apiKey;
+    private Client $client;
     private string $model;
-    private string $apiUrl = 'https://generativelanguage.googleapis.com/v1beta/models/';
+    private float $temperature;
+    private float $topP;
+    private int $maxTokens;
+    private string $baseUrl;
 
-    // Acciones válidas que el modelo puede devolver
     private const VALID_INTENTS = [
         'REGISTER_PATIENT',
         'CREATE_APPOINTMENT',
@@ -47,7 +50,6 @@ class AIService
         'UNKNOWN',
     ];
 
-    // Keys válidas que pueden venir en data{}
     private const VALID_DATA_KEYS = [
         'tipo_documento',
         'documento',
@@ -64,7 +66,6 @@ class AIService
         'consentimiento',
     ];
 
-    // Schema mínimo de contexto con sus defaults
     private const CONTEXT_DEFAULTS = [
         'registered' => false,
         'tipo_documento' => null,
@@ -83,43 +84,62 @@ class AIService
 
     public function __construct()
     {
-        $this->apiKey = config('services.gemini.key');
-        $this->model = config('services.gemini.model');
+        $this->model = config('agent.model', 'meta/llama-3.1-8b-instruct');
+        $this->temperature = (float) config('agent.temperature', 0.2);
+        $this->topP = (float) config('agent.top_p', 0.7);
+        $this->maxTokens = (int) config('agent.max_tokens', 1024);
+        $this->baseUrl = config('agent.base_url', 'https://integrate.api.nvidia.com/v1');
+
+        $this->client = OpenAI::factory()
+            ->withApiKey(config('agent.api_key'))
+            ->withBaseUri($this->baseUrl)
+            ->make();
     }
 
     public function analyzeMessage(string $message, array $context = [], array $history = []): array
     {
         $context = $this->normalizeContext($context);
-        $payload = $this->buildPayload($message, $context, $history);
+        $messages = $this->buildMessages($message, $context, $history);
+
+        $payload = [
+            'model' => $this->model,
+            'messages' => $messages,
+            'temperature' => $this->temperature,
+            'top_p' => $this->topP,
+            'max_tokens' => $this->maxTokens,
+            'response_format' => ['type' => 'json_object'],
+        ];
 
         try {
-            \Illuminate\Support\Facades\Log::info('[AUDIT-3] Sending request to Gemini (analyzeMessage)', [
+            Log::info('[AUDIT-3] Sending request to NVIDIA NIM (analyzeMessage)', [
                 'model'   => $this->model,
-                'payload' => $payload, // Key is in URL, not in payload body
+                'base_url' => $this->baseUrl,
             ]);
 
-            $response = Http::retry(3, 800, function ($exception) {
-                return !($exception instanceof \Illuminate\Http\Client\RequestException
-                    && $exception->response->status() < 500);
-            })->post(
-                "{$this->apiUrl}{$this->model}:generateContent?key={$this->apiKey}",
-                $payload
-            );
+          $response = $this->client->chat()->create($payload);
 
-            \Illuminate\Support\Facades\Log::info('[AUDIT-3] Gemini response received (analyzeMessage)', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
+            Log::info('[AUDIT-3] NVIDIA NIM response received (analyzeMessage)', [
+                'status' => 200,
+                'body'   => $response->choices[0]->message->content ?? null,
             ]);
 
-            if ($response->failed()) {
-                throw new Exception("Gemini API error [{$response->status()}]: " . $response->body());
-            }
+            $result = [
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => $response->choices[0]->message->content ?? null,
+                        ]
+                    ]
+                ]
+            ];
 
-            $result = $response->json();
             return $this->parseAndValidate($result, $context);
 
         } catch (Exception $e) {
-            \Illuminate\Support\Facades\Log::error('[AUDIT-3] Gemini Error (analyzeMessage): ' . $e->getMessage());
+            Log::error('[AUDIT-3] NVIDIA NIM Error (analyzeMessage): ' . $e->getMessage(), [
+                'model' => $this->model,
+                'base_url' => $this->baseUrl,
+            ]);
             return $this->fallbackResponse();
         }
     }
@@ -130,100 +150,102 @@ class AIService
         array $history = []
     ): array {
         $context = $this->normalizeContext($context);
-        $payload = $this->buildPayloadWithSystemResult($systemInfo, $context, $history);
+        $messages = $this->buildMessagesWithSystemResult($systemInfo, $context, $history);
+
+        $payload = [
+            'model' => $this->model,
+            'messages' => $messages,
+            'temperature' => $this->temperature,
+            'top_p' => $this->topP,
+            'max_tokens' => $this->maxTokens,
+            'response_format' => ['type' => 'json_object'],
+        ];
 
         try {
-            \Illuminate\Support\Facades\Log::info('[AUDIT-3] Sending request to Gemini (composeFromSystemResult)', [
+            Log::info('[AUDIT-3] Sending request to NVIDIA NIM (composeFromSystemResult)', [
                 'model'   => $this->model,
-                'payload' => $payload,
+                'base_url' => $this->baseUrl,
             ]);
 
-            $response = Http::retry(3, 800, function ($exception) {
-                return !($exception instanceof \Illuminate\Http\Client\RequestException
-                    && $exception->response->status() < 500);
-            })->post(
-                "{$this->apiUrl}{$this->model}:generateContent?key={$this->apiKey}",
-                $payload
-            );
+          $response = $this->client->chat()->create($payload);
 
-            \Illuminate\Support\Facades\Log::info('[AUDIT-3] Gemini response received (composeFromSystemResult)', [
-                'status' => $response->status(),
-                'body'   => $response->body(),
+            Log::info('[AUDIT-3] NVIDIA NIM response received (composeFromSystemResult)', [
+                'status' => 200,
+                'body'   => $response->choices[0]->message->content ?? null,
             ]);
 
-            if ($response->failed()) {
-                throw new Exception("Gemini API error [{$response->status()}]: " . $response->body());
-            }
+            $result = [
+                'choices' => [
+                    [
+                        'message' => [
+                            'content' => $response->choices[0]->message->content ?? null,
+                        ]
+                    ]
+                ]
+            ];
 
-            $result = $response->json();
             return $this->parseAndValidate($result, $context);
 
         } catch (Exception $e) {
-            \Illuminate\Support\Facades\Log::error('[AUDIT-3] Gemini Error (composeFromSystemResult): ' . $e->getMessage());
+            Log::error('[AUDIT-3] NVIDIA NIM Error (composeFromSystemResult): ' . $e->getMessage(), [
+                'model' => $this->model,
+                'base_url' => $this->baseUrl,
+            ]);
             return $this->fallbackResponse();
         }
     }
 
-    private function buildPayload(string $message, array $context, array $history): array
+    private function buildMessages(string $message, array $context, array $history): array
     {
-        $contents = [];
-        
-        // 1. Inyectar el Estado Actual como la primera pieza de información del usuario
+        $messages = [];
+
         $filledContext = array_filter($context, fn($v) => $v !== null && $v !== false);
-        $contents[] = [
-            'role'  => 'user', 
-            'parts' => [['text' => "[SISTEMA - ESTADO ACTUAL DEL USUARIO]: " . json_encode($filledContext, JSON_UNESCAPED_UNICODE) . "\nUtiliza este estado para decidir el siguiente paso. No pidas datos que ya estén aquí."]]
+        $messages[] = [
+            'role' => 'system',
+            'content' => $this->buildSystemPrompt(),
         ];
 
-        // 2. Agregar el historial de conversación natural
+        $messages[] = [
+            'role' => 'user',
+            'content' => "[SISTEMA - ESTADO ACTUAL DEL USUARIO]: " . json_encode($filledContext, JSON_UNESCAPED_UNICODE) . "\nUtiliza este estado para decidir el siguiente paso. No pidas datos que ya estén aquí.",
+        ];
+
         foreach ($history as $turn) {
             if (!isset($turn['role'], $turn['text'])) continue;
-            $contents[] = ['role'  => $turn['role'], 'parts' => [['text' => $turn['text']]]];
+            $role = $turn['role'] === 'model' ? 'assistant' : $turn['role'];
+            $messages[] = ['role' => $role, 'content' => $turn['text']];
         }
 
-        // 3. El mensaje actual del usuario
-        $contents[] = ['role'  => 'user', 'parts' => [['text' => $message]]];
-        
-        return $this->wrapPayload($contents);
+        $messages[] = ['role' => 'user', 'content' => $message];
+
+        return $messages;
     }
-    private function buildPayloadWithSystemResult(string $systemInfo, array $context, array $history): array
+
+    private function buildMessagesWithSystemResult(string $systemInfo, array $context, array $history): array
     {
-        $contents = [];
-        
-        // 1. Inyectar el Estado Actual
+        $messages = [];
+
         $filledContext = array_filter($context, fn($v) => $v !== null && $v !== false);
-        $contents[] = [
-            'role'  => 'user', 
-            'parts' => [['text' => "[SISTEMA - ESTADO ACTUAL DEL USUARIO]: " . json_encode($filledContext, JSON_UNESCAPED_UNICODE)]]
+        $messages[] = [
+            'role' => 'system',
+            'content' => $this->buildSystemPrompt(),
         ];
 
-        // 2. Agregar el historial
+        $messages[] = [
+            'role' => 'user',
+            'content' => "[SISTEMA - ESTADO ACTUAL DEL USUARIO]: " . json_encode($filledContext, JSON_UNESCAPED_UNICODE),
+        ];
+
         foreach ($history as $turn) {
             if (!isset($turn['role'], $turn['text'])) continue;
-            $contents[] = ['role'  => $turn['role'], 'parts' => [['text' => $turn['text']]]];
+            $role = $turn['role'] === 'model' ? 'assistant' : $turn['role'];
+            $messages[] = ['role' => $role, 'content' => $turn['text']];
         }
 
-        // 3. Resultado del sistema y la instrucción de redacción
-        $contents[] = ['role'  => 'model', 'parts' => [['text' => '[RESULTADO_SISTEMA] ' . $systemInfo]]];
-        $contents[] = ['role'  => 'user', 'parts' => [['text' => 'Redacta la respuesta al usuario basándote en [RESULTADO_SISTEMA]. Luego, analiza el [ESTADO_ACTUAL] y decide la siguiente acción siguiendo la secuencia lineal obligatoria: Servicio -> Profesional -> Sede -> Fecha -> Disponibilidad. Tienes PROHIBIDO retroceder a un paso que ya tenga un valor asignado en el [ESTADO_ACTUAL]. Sé breve y directo.']]];
-        
-        return $this->wrapPayload($contents);
-    }
+        $messages[] = ['role' => 'assistant', 'content' => '[RESULTADO_SISTEMA] ' . $systemInfo];
+        $messages[] = ['role' => 'user', 'content' => 'Redacta la respuesta al usuario basándote en [RESULTADO_SISTEMA]. Luego, analiza el [ESTADO_ACTUAL] y decide la siguiente acción siguiendo la secuencia lineal obligatoria: Servicio -> Profesional -> Sede -> Fecha -> Disponibilidad. Tienes PROHIBIDO retroceder a un paso que ya tenga un valor asignado en el [ESTADO_ACTUAL]. Sé breve y directo.'];
 
-
-    private function wrapPayload(array $contents): array
-    {
-        return [
-            'system_instruction' => ['parts' => [['text' => $this->buildSystemPrompt()]]],
-            'contents'         => $contents,
-            'generationConfig' => [
-                'temperature'        => 0.0,
-                'topP'               => 0.8,
-                'maxOutputTokens'    => 1024,
-                'response_mime_type' => 'application/json',
-                'response_schema'    => $this->responseSchema(),
-            ],
-        ];
+        return $messages;
     }
 
     private function buildSystemPrompt(): string
@@ -233,9 +255,9 @@ Eres el recepcionista virtual de una clínica de podología. Tu única función 
 Saluida siempre mencionando el nombre de la clínica proporcionado en el contexto (`clinic_name`).
 DEBES responder SIEMPRE y EXCLUSIVAMENTE en idioma español. Nunca mezcles idiomas ni respondan en inglés.
 
-════════════════════════════════════════
+═══════════════════════════════════════
 REGLAS ABSOLUTAS (nunca las violes)
-════════════════════════════════════════
+═══════════════════════════════════════
 1. Responde EXCLUSIVAMENTE con el objeto JSON definido en el schema. Sin texto adicional, sin markdown.
 2. Nunca inventes datos: si no tienes un dato, su valor en `data` debe ser null.
 3. Nunca confundas lo que el usuario DICE con lo que el sistema TIENE. El estado real está en [ESTADO_ACTUAL].
@@ -246,16 +268,16 @@ REGLAS ABSOLUTAS (nunca las violes)
 8. MANTÉN la comunicación estrictamente en español.
 
 
-════════════════════════════════════════
+═══════════════════════════════════════
 CÓMO LEER EL ESTADO
-════════════════════════════════════════
+═══════════════════════════════════════
 El mensaje con prefijo [ESTADO_ACTUAL] contiene el JSON con los datos que ya se tienen.
 - registered: true → el paciente ya existe en el sistema.
 - Cualquier campo con valor = ese dato ya fue recopilado y no debes volver a pedirlo.
 
-════════════════════════════════════════
+═══════════════════════════════════════
 EXTRACCIÓN DE DATOS (Súper Crítico)
-════════════════════════════════════════
+═══════════════════════════════════════
 Cuando el usuario proporcione uno o VARIOS datos en su mensaje, DEBES extraer TODOS ellos simultáneamente en el objeto `data`. 
 
 REGLA DE EXTRACCIÓN MÚLTIPLE:
@@ -291,9 +313,18 @@ Ejemplos:
 
 Solo incluye en `data` los campos que el usuario mencionó EN ESTE MENSAJE. No repitas campos del estado.
 
-════════════════════════════════════════
+═══════════════════════════════════════
+SALUDOS Y BIENVENIDA
+═══════════════════════════════════════
+Cuando el usuario envíe un saludo genérico (como "Buenas noches", "Hola", "Buenos días", "¿Cómo estás?"), debes responder ÚNICAMENTE con JSON:
+{"intent":"ASK_DOCUMENT","action":"ASK_DOCUMENT","message":"[tu mensaje de saludo con clinic_name]","data":{}}
+Ejemplo: {"intent":"ASK_DOCUMENT","action":"ASK_DOCUMENT","message":"Buenas noches, bienvenido a la Clínica PodoSoft Central. Para atenderte necesito tu número de documento.","data":{}}
+NUNCA respondas con texto plano. Siempre usa el formato JSON.
+NUNCA respondas FAQ ante un saludo. Un saludo NO es una pregunta fuera de alcance.
+
+═══════════════════════════════════════
 FLUJO OBLIGATORIO (sigue este orden)
-════════════════════════════════════════
+═══════════════════════════════════════
 REGLA DE ORO DE AVANCE: Antes de decidir la `action`, verifica si el usuario proporcionó el dato que faltaba en su último mensaje. Si el dato (ID o nombre) está presente en el mensaje actual, considéralo como COMPLETADO y AVANZA al siguiente paso inmediatamente. NUNCA repitas una acción de solicitud (GET_...) si el usuario acaba de dar la respuesta.
 
 PASO 0 — CONSULTAR CITAS EXISTENTES
@@ -334,47 +365,26 @@ PASO 4 — CREAR CITA
   Cuando tengas: documento, fecha_hora (o fecha+hora), servicio_id, profesional_id, sede_id
   → action: CREATE_APPOINTMENT
 
-════════════════════════════════════════
+═══════════════════════════════════════
 VALORES PERMITIDOS
-════════════════════════════════════════
+═══════════════════════════════════════
 intent: REGISTER_PATIENT | CREATE_APPOINTMENT | GET_SERVICES | GET_PROFESSIONALS | GET_SEDES | FAQ | UNKNOWN
 action: ASK_DOC_TYPE | ASK_NAME | ASK_DOCUMENT | ASK_PHONE | ASK_SERVICE | ASK_PROFESSIONAL | ASK_DATE | ASK_TIME | GET_SERVICES | GET_PROFESSIONALS | GET_SEDES | REGISTER_PATIENT | CREATE_APPOINTMENT | VALIDATE_PATIENT | GET_AVAILABILITY | FAQ | UNKNOWN
 PROMPT;
     }
 
-    private function responseSchema(): array
-    {
-        return [
-            'type' => 'object',
-            'properties' => [
-                'intent' => ['type' => 'string', 'enum' => self::VALID_INTENTS],
-                'action' => ['type' => 'string', 'enum' => self::VALID_ACTIONS],
-                'message' => ['type' => 'string'],
-                'data' => [
-                    'type' => 'object',
-                    'properties' => array_fill_keys(
-                        self::VALID_DATA_KEYS,
-                        ['type' => 'string', 'nullable' => true]
-                    ),
-                ],
-            ],
-            'required' => ['intent', 'action', 'message', 'data'],
-        ];
-    }
-
     private function parseAndValidate(array $result, array $context): array
     {
-        $textResponse = $result['candidates'][0]['content']['parts'][0]['text'] ?? null;
+        $textResponse = $result['choices'][0]['message']['content'] ?? null;
 
         if ($textResponse === null) {
-            throw new Exception('No text content in Gemini response.');
+            throw new Exception('No text content in NVIDIA NIM response.');
         }
 
-        \Illuminate\Support\Facades\Log::info('[AUDIT-3] Raw text response', ['text' => $textResponse]);
+        Log::info('[AUDIT-3] Raw text response', ['text' => $textResponse]);
 
         $clean = preg_replace('/^```(?:json)?\s*/i', '', trim($textResponse));
         $clean = preg_replace('/\s*```$/', '', $clean);
-        $clean = preg_replace('/[^\x20-\x7E\x0A\x0D]/', '', $clean);
 
         $decoded = json_decode($clean, true);
 
@@ -384,8 +394,21 @@ PROMPT;
             }
         }
 
-        if (!$decoded || !isset($decoded['intent'], $decoded['action'], $decoded['message'])) {
-            \Illuminate\Support\Facades\Log::error('[AUDIT-3] Schema mismatch', [
+        if (!$decoded || !isset($decoded['intent'], $decoded['action'])) {
+            Log::error('[AUDIT-3] Schema mismatch', [
+                'clean_text' => $clean,
+                'decoded' => $decoded
+            ]);
+            throw new Exception('Respuesta del modelo no cumple el schema mínimo.');
+        }
+
+        if (isset($decoded['mensaje']) && !isset($decoded['message'])) {
+            $decoded['message'] = $decoded['mensaje'];
+            unset($decoded['mensaje']);
+        }
+
+        if (!isset($decoded['message'])) {
+            Log::error('[AUDIT-3] Schema mismatch - missing message field', [
                 'clean_text' => $clean,
                 'decoded' => $decoded
             ]);
@@ -396,12 +419,12 @@ PROMPT;
         $decoded['data'] = array_intersect_key($decoded['data'], array_flip(self::VALID_DATA_KEYS));
 
         if (!in_array($decoded['intent'], self::VALID_INTENTS, true)) {
-            \Illuminate\Support\Facades\Log::warning('[AUDIT-3] intent inválido', ['intent' => $decoded['intent']]);
+            Log::warning('[AUDIT-3] intent inválido', ['intent' => $decoded['intent']]);
             $decoded['intent'] = 'UNKNOWN';
         }
 
         if (!in_array($decoded['action'], self::VALID_ACTIONS, true)) {
-            \Illuminate\Support\Facades\Log::warning('[AUDIT-3] action inválida', ['action' => $decoded['action']]);
+            Log::warning('[AUDIT-3] action inválida', ['action' => $decoded['action']]);
             $decoded['action'] = 'UNKNOWN';
         }
 

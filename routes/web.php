@@ -28,6 +28,9 @@ use App\Livewire\InsumoEdit;
 use App\Livewire\ServicioIndex;
 use App\Livewire\ServicioCreate;
 use App\Livewire\ServicioEdit;
+use App\Livewire\PublicPatientRegistration;
+use App\Livewire\PublicAppointmentWizard;
+use App\Livewire\Services;
 
 Route::get('/', function () {
     return view('welcome');
@@ -37,6 +40,20 @@ Route::get('/login', Login::class)->name('login');
 Route::get('/register', function () { return view('onboarding'); })->name('register');
 Route::post('/register/submit', [OnboardingController::class, 'submit'])->name('register.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+Route::middleware(['tenant.resolve'])->group(function () {
+    Route::get('/{tenant}/register-patient', PublicPatientRegistration::class)
+        ->name('public.patient.register')
+        ->middleware('signed');
+
+    Route::get('/{tenant}/appointment', PublicAppointmentWizard::class)
+        ->name('public.appointment')
+        ->middleware('signed');
+
+    Route::get('/{tenant}/services', Services::class)
+        ->name('public.services')
+        ->middleware('signed');
+});
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/dashboard', Dashboard::class)->name('dashboard');
@@ -60,6 +77,18 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/create', PatientCreate::class)->name('create');
         Route::get('/{patient}/edit', \App\Livewire\PatientEdit::class)->name('edit');
         Route::get('/{patient}', PatientShow::class)->name('show');
+    });
+
+    Route::prefix('servicios')->name('servicios.')->group(function () {
+        Route::get('/', ServicioIndex::class)->name('index');
+        Route::get('/create', ServicioCreate::class)->name('create');
+        Route::get('/{servicio}/edit', ServicioEdit::class)->name('edit');
+    });
+
+    Route::prefix('profesionales')->name('profesionales.')->group(function () {
+        Route::get('/', \App\Livewire\ProfesionalIndex::class)->name('index');
+        Route::get('/create', \App\Livewire\ProfesionalCreate::class)->name('create');
+        Route::get('/{profesional}/edit', \App\Livewire\ProfesionalEdit::class)->name('edit');
     });
 
     Route::prefix('clinical-history')->name('clinical-history.')->group(function () {
