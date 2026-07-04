@@ -49,8 +49,8 @@ class NotifyAppointmentCreated implements ShouldQueue
         $message .= "\nGracias por utilizar nuestros servicios.";
 
         try {
-            $whatsAppService->sendText($phone, $message);
-            Log::info('[NotifyAppointmentCreated] WhatsApp notification sent', ['phone' => $phone]);
+            $whatsAppService->forTenant($tenant->id)->sendText($phone, $message);
+            Log::info('[NotifyAppointmentCreated] WhatsApp notification sent', ['phone' => $phone, 'tenant_id' => $tenant->id]);
         } catch (\Exception $e) {
             Log::error('[NotifyAppointmentCreated] Failed to send WhatsApp notification', [
                 'phone' => $phone,

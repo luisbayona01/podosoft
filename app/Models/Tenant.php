@@ -10,4 +10,6 @@ class Tenant extends Model {
     public function profesionales(): HasMany { return $this->hasMany(Profesional::class); }
     public function pacientes(): HasMany { return $this->hasMany(Paciente::class); }
     public function servicios(): HasMany { return $this->hasMany(Servicio::class); }
+    public function whatsAppAccounts(): HasMany { return $this->hasMany(TenantWhatsAppAccount::class); }
+    public function activeWhatsAppAccount(): HasMany { return $this->hasMany(TenantWhatsAppAccount::class)->where('status', 'connected'); }
 }
