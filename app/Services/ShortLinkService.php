@@ -22,10 +22,14 @@ class ShortLinkService
             'expires_at' => $expiresAt,
         ]);
 
-        Log::info('[ShortLinkService] Short link created', [
+        Log::info('[DEBUG-SIGNATURE] ShortLinkService::create - SHORT LINK CREADO', [
             'code' => $code,
             'original_url' => $originalUrl,
-            'expires_at' => $expiresAt,
+            'original_url_length' => strlen($originalUrl),
+            'expires_at' => $expiresAt->toIso8601String(),
+            'expires_at_timestamp' => $expiresAt->timestamp,
+            'short_url' => $shortLink->getShortUrl(),
+            'tenant_id' => $tenantId,
         ]);
 
         return $shortLink;
@@ -38,9 +42,18 @@ class ShortLinkService
         if ($shortLink) {
             $shortLink->recordClick();
 
-            Log::info('[ShortLinkService] Short link accessed', [
+            Log::info('[DEBUG-SIGNATURE] ShortLinkService::findValidByCode - SHORT LINK RECUPERADO', [
                 'code' => $code,
-                'click_count' => $shortLink->click_count,
+                'original_url' => $shortLink->original_url,
+                'original_url_length' => strlen($shortLink->original_url),
+                'expires_at' => $shortLink->expires_at?->toIso8601String(),
+                'expires_at_timestamp' => $shortLink->expires_at?->timestamp,
+                'is_expired' => $shortLink->isExpired(),
+                'was_modified' => false,
+            ]);
+        } else {
+            Log::info('[DEBUG-SIGNATURE] ShortLinkService::findValidByCode - NO ENCONTRADO', [
+                'code' => $code,
             ]);
         }
 
@@ -55,8 +68,17 @@ class ShortLinkService
             ->first();
 
         if ($existing) {
+            Log::info('[DEBUG-SIGNATURE] ShortLinkService::getOrCreate - REUTILIZADO EXISTENTE', [
+                'original_url' => $originalUrl,
+                'code' => $existing->code,
+                'short_url' => $existing->getShortUrl(),
+            ]);
             return $existing;
         }
+
+        Log::info('[DEBUG-SIGNATURE] ShortLinkService::getOrCreate - CREANDO NUEVO', [
+            'original_url' => $originalUrl,
+        ]);
 
         return $this->create($originalUrl, $tenantId, now()->addDays($expiresInDays));
     }
@@ -65,7 +87,7 @@ class ShortLinkService
     {
         $count = ShortLink::where('expires_at', '<', now())->delete();
 
-        Log::info('[ShortLinkService] Invalidated expired short links', [
+        Log::info('[DEBUG-SIGNATURE] ShortLinkService::invalidateExpired - Invalidated expired short links', [
             'count' => $count,
         ]);
 
@@ -75,6 +97,13 @@ class ShortLinkService
     public function getUrl(string $originalUrl, ?int $tenantId = null): string
     {
         $shortLink = $this->getOrCreate($originalUrl, $tenantId);
+
+        Log::info('[DEBUG-SIGNATURE] ShortLinkService::getUrl - URL CORTA GENERADA', [
+            'original_url' => $originalUrl,
+            'short_url' => $shortLink->getShortUrl(),
+            'code' => $shortLink->code,
+        ]);
+
         return $shortLink->getShortUrl();
     }
 }

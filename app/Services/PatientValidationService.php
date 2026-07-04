@@ -34,28 +34,86 @@ class PatientValidationService
 
     public function generateServicesUrl(Tenant $tenant, Paciente $patient, string $phone): string
     {
-        return URL::temporarySignedRoute(
+        $expiresAt = now()->addDays(7);
+        $params = [
+            'tenant' => $tenant->slug,
+            'documento' => $patient->documento,
+            'phone' => $phone,
+        ];
+
+        Log::channel('single')->info('[DEBUG-SIGNATURE] generateServicesUrl - INICIO', [
+            'app_url' => config('app.url'),
+            'app_key' => config('app.key'),
+            'now' => now()->toIso8601String(),
+            'now_timestamp' => now()->timestamp,
+            'expires_timestamp' => $expiresAt->timestamp,
+            'expires_iso' => $expiresAt->toIso8601String(),
+            'params' => $params,
+        ]);
+
+        $url = URL::temporarySignedRoute(
             'public.services',
-            now()->addDays(7),
-            [
-                'tenant' => $tenant->slug,
-                'documento' => $patient->documento,
-                'phone' => $phone,
-            ]
+            $expiresAt,
+            $params
         );
+
+        $parsed = parse_url($url);
+        parse_str($parsed['query'] ?? '', $queryParams);
+
+        Log::channel('single')->info('[DEBUG-SIGNATURE] generateServicesUrl - URL GENERADA', [
+            'full_url' => $url,
+            'scheme' => $parsed['scheme'] ?? null,
+            'host' => $parsed['host'] ?? null,
+            'path' => $parsed['path'] ?? null,
+            'query_string' => $parsed['query'] ?? null,
+            'query_params' => $queryParams,
+            'signature' => $queryParams['signature'] ?? null,
+            'expires_param' => $queryParams['expires'] ?? null,
+        ]);
+
+        return $url;
     }
 
-    public function generateRegisterUrl(Tenant $tenant, string $documento, string $phone): string
+    public function generateRegisterUrl(Tenant $tenant, string $documento, string $phone, $expiresAt = null): string
     {
-        return URL::temporarySignedRoute(
+        $expiresAt ??= now()->addDays(7);
+        $params = [
+            'tenant' => $tenant->slug,
+            'documento' => $documento,
+            'phone' => $phone,
+        ];
+
+        Log::channel('single')->info('[DEBUG-SIGNATURE] generateRegisterUrl - INICIO', [
+            'app_url' => config('app.url'),
+            'app_key' => config('app.key'),
+            'now' => now()->toIso8601String(),
+            'now_timestamp' => now()->timestamp,
+            'expires_timestamp' => $expiresAt->timestamp,
+            'expires_iso' => $expiresAt->toIso8601String(),
+            'params' => $params,
+        ]);
+
+        $url = URL::temporarySignedRoute(
             'public.patient.register',
-            now()->addDays(7),
-            [
-                'tenant' => $tenant->slug,
-                'documento' => $documento,
-                'phone' => $phone,
-            ]
+            $expiresAt,
+            $params
         );
+
+        $parsed = parse_url($url);
+        parse_str($parsed['query'] ?? '', $queryParams);
+
+        Log::channel('single')->info('[DEBUG-SIGNATURE] generateRegisterUrl - URL GENERADA', [
+            'full_url' => $url,
+            'scheme' => $parsed['scheme'] ?? null,
+            'host' => $parsed['host'] ?? null,
+            'path' => $parsed['path'] ?? null,
+            'query_string' => $parsed['query'] ?? null,
+            'query_params' => $queryParams,
+            'signature' => $queryParams['signature'] ?? null,
+            'expires_param' => $queryParams['expires'] ?? null,
+        ]);
+
+        return $url;
     }
 
     public function extractDocumentFromMessage(string $message): ?string

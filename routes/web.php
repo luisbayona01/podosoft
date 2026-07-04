@@ -52,15 +52,15 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::middleware(['tenant.resolve'])->group(function () {
     Route::get('/{tenant}/register-patient', PublicPatientRegistration::class)
         ->name('public.patient.register')
-        ->middleware('signed');
+        ->middleware('debug.signature', 'signed');
 
     Route::get('/{tenant}/appointment', PublicAppointmentWizard::class)
         ->name('public.appointment')
-        ->middleware('signed');
+        ->middleware('debug.signature', 'signed');
 
     Route::get('/{tenant}/services', Services::class)
         ->name('public.services')
-        ->middleware('signed'); 
+        ->middleware('debug.signature', 'signed'); 
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -113,7 +113,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('financials')->name('financials.')->group(function () {
         Route::get('/', FinancialsReport::class)->name('report');
-        Route::get('/register/{citaId}', PaymentRegister::class)->name('payment.register');
+        Route::get('/register/{citaId}', PaymentRegister::class)->name('financials.payment.register');
     });
 
     Route::prefix('insumos')->name('insumos.')->group(function () {
