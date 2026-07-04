@@ -20,7 +20,7 @@ class SendWelcomeWhatsAppMessage
         $message = "Tu registro fue exitoso.";
 
         try {
-            $this->whatsAppService->sendText($event->whatsappPhone, $message);
+            $this->whatsAppService->forTenant($event->tenant->id)->sendText($event->whatsappPhone, $message);
         } catch (\Exception $e) {
             report($e);
         }

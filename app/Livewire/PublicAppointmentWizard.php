@@ -380,7 +380,7 @@ class PublicAppointmentWizard extends Component
         }
 
         try {
-            $whatsappService = app(WhatsAppService::class);
+            $whatsappService = app(WhatsAppService::class)->forTenant($tenant->id);
 
             $message = "✅ Tu cita quedó registrada.\n\n";
             $message .= "📅 Fecha: " . date('d/m/Y', strtotime($this->fecha)) . "\n";

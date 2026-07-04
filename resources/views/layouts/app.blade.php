@@ -190,6 +190,30 @@
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Servicios</span>
                         </a>
+                        @php
+$whatsAppStatus = \App\Models\TenantWhatsAppAccount::where('tenant_id', auth()->user()->tenant_id ?? 1)->first();
+$whatsAppStatusClass = match($whatsAppStatus?->status) {
+    'connected' => 'bg-emerald-500',
+    'connecting' => 'bg-amber-500 animate-pulse',
+    'disconnected' => 'bg-red-500',
+    'error' => 'bg-red-500',
+    default => 'bg-slate-400'
+};
+@endphp
+                        <a href="{{ route('config.whatsapp') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('config.whatsapp') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <div class="relative">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round"
+                                    class="{{ request()->routeIs('config.whatsapp') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                                </svg>
+                                <span class="absolute -top-1 -right-1 w-2.5 h-2.5 {{ $whatsAppStatusClass }} rounded-full border-2 {{ request()->routeIs('config.whatsapp') ? 'border-blue-600' : 'border-slate-800' }}"></span>
+                            </div>
+                            <span x-show="!sidebarCollapsed" class="font-medium">WhatsApp</span>
+                        </a>
                     </div>
                 </div>
 

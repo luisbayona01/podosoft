@@ -31,15 +31,23 @@ use App\Livewire\ServicioEdit;
 use App\Livewire\PublicPatientRegistration;
 use App\Livewire\PublicAppointmentWizard;
 use App\Livewire\Services;
+use App\Livewire\WhatsAppConfig;
+use App\Http\Controllers\WhatsAppWebhookController;
+use App\Http\Controllers\ShortLinkController;
 
 Route::get('/', function () {
     return view('welcome');
 });
 
+Route::get('/r/{code}', [ShortLinkController::class, 'redirect'])->name('shortlink.redirect');
+
 Route::get('/login', Login::class)->name('login');
 Route::get('/register', function () { return view('onboarding'); })->name('register');
 Route::post('/register/submit', [OnboardingController::class, 'submit'])->name('register.submit');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+
+/*Route::post('/webhook/whatsapp/{instance}', [WhatsAppWebhookController::class, 'handle'])
+    ->name('webhook.whatsapp');*/
 
 Route::middleware(['tenant.resolve'])->group(function () {
     Route::get('/{tenant}/register-patient', PublicPatientRegistration::class)
@@ -52,7 +60,7 @@ Route::middleware(['tenant.resolve'])->group(function () {
 
     Route::get('/{tenant}/services', Services::class)
         ->name('public.services')
-        ->middleware('signed');
+        ->middleware('signed'); 
 });
 
 Route::middleware(['auth'])->group(function () {
@@ -89,6 +97,10 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/', \App\Livewire\ProfesionalIndex::class)->name('index');
         Route::get('/create', \App\Livewire\ProfesionalCreate::class)->name('create');
         Route::get('/{profesional}/edit', \App\Livewire\ProfesionalEdit::class)->name('edit');
+    });
+
+    Route::prefix('config')->name('config.')->group(function () {
+        Route::get('/whatsapp', WhatsAppConfig::class)->name('whatsapp');
     });
 
     Route::prefix('clinical-history')->name('clinical-history.')->group(function () {
