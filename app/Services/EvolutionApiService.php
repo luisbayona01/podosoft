@@ -283,6 +283,8 @@ class EvolutionApiService
         $text = str_replace("\0", "", $text);
 
         try {
+            $this->sendPresence($number);
+
             $url = "{$this->baseUrl}/message/sendText/{$this->instanceName}";
 
             $response = Http::withHeaders([
@@ -312,6 +314,102 @@ class EvolutionApiService
         }
     }
 
+    public function markMessageAsRead(string $instance, array $messageData): void
+    {
+        $key = $messageData['key'] ?? [];
+        $remoteJid = $key['remoteJid'] ?? null;
+        $messageId = $key['id'] ?? null;
+        $fromMe = $key['fromMe'] ?? false;
+
+        if (!$remoteJid || !$messageId) {
+            Log::warning('[EVOLUTION] Cannot mark message as read - missing data', [
+                'instance' => $instance,
+                'remoteJid' => $remoteJid,
+                'messageId' => $messageId,
+            ]);
+            return;
+        }
+
+        Log::info('[EVOLUTION] Marking message as read', [
+            'instance' => $instance,
+            'remoteJid' => $remoteJid,
+            'messageId' => $messageId,
+        ]);
+
+        try {
+            $url = "{$this->baseUrl}/chat/markMessageAsRead/{$instance}";
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'apikey' => $this->apiKey,
+            ])->withOptions([
+                'verify' => $this->verify,
+            ])->post($url, [
+                'readMessages' => [
+                    [
+                        'remoteJid' => $remoteJid,
+                        'fromMe' => $fromMe,
+                        'id' => $messageId,
+                    ],
+                ],
+            ]);
+
+            if ($response->failed()) {
+                Log::warning('[EVOLUTION] Mark as read failed', [
+                    'instance' => $instance,
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return;
+            }
+
+            Log::info('[EVOLUTION] Message marked as read');
+        } catch (Exception $e) {
+            Log::warning('[EVOLUTION] Mark as read failed', [
+                'instance' => $instance,
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
+    public function sendPresence(string $number, int $delay = 3000): void
+    {
+        Log::info('[EVOLUTION] Sending composing presence', [
+            'instance' => $this->instanceName,
+            'number' => $number,
+            'delay' => $delay,
+        ]);
+
+        try {
+            $url = "{$this->baseUrl}/chat/sendPresence/{$this->instanceName}";
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'apikey' => $this->apiKey,
+            ])->withOptions([
+                'verify' => $this->verify,
+            ])->post($url, [
+                'number' => $number,
+                'delay' => $delay,
+                'presence' => 'composing',
+            ]);
+
+            if ($response->failed()) {
+                Log::warning('[EVOLUTION] Presence failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return;
+            }
+
+            Log::info('[EVOLUTION] Presence sent successfully');
+        } catch (Exception $e) {
+            Log::warning('[EVOLUTION] Presence failed', [
+                'error' => $e->getMessage(),
+            ]);
+        }
+    }
+
     public function sendInteractiveButtons(string $number, string $text, string $buttonText, string $buttonId): bool
     {
         Log::info('[EvolutionApiService] Sending interactive buttons', [
@@ -322,6 +420,8 @@ class EvolutionApiService
         $text = str_replace("\0", "", $text);
 
         try {
+            $this->sendPresence($number);
+
             $url = "{$this->baseUrl}/message/sendInteractive/{$this->instanceName}";
 
             $response = Http::withHeaders([
@@ -378,6 +478,8 @@ class EvolutionApiService
         $text = str_replace("\0", "", $text);
 
         try {
+            $this->sendPresence($number);
+
             $urlEndpoint = "{$this->baseUrl}/message/sendInteractive/{$this->instanceName}";
 
             $response = Http::withHeaders([

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\TenantWhatsAppAccount;
 use App\Services\AgentService;
+use App\Services\EvolutionApiService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -253,7 +254,12 @@ class WhatsAppWebhookController extends Controller
 
         $account->update($updateData);
 
+        $messageData = $data['data'] ?? $data;
+
         try {
+            $evolutionApi = app(EvolutionApiService::class)->fromAccount($account);
+            $evolutionApi->markMessageAsRead($account->instance_name, $messageData);
+
             $agentService = app(AgentService::class);
             $response = $agentService->handleMessage($phone, $message, $account->tenant_id);
 

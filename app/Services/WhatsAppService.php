@@ -43,6 +43,8 @@ class WhatsAppService
         $text = str_replace("\0", "", $text);
 
         try {
+            $this->sendPresence($number, $text);
+
             $url = $this->account->server_url ?? config('services.evolution.url');
             $apiKey = $this->account->api_key ?? config('services.evolution.key');
 
@@ -96,6 +98,8 @@ class WhatsAppService
         }
 
         try {
+            $this->sendPresence($number, $text);
+
             $urlEndpoint = $this->account->server_url ?? config('services.evolution.url');
             $apiKey = $this->account->api_key ?? config('services.evolution.key');
 
@@ -143,6 +147,50 @@ class WhatsAppService
         } catch (Exception $e) {
             Log::error("WhatsAppService Interactive Error: " . $e->getMessage());
             return false;
+        }
+    }
+
+    protected function sendPresence(string $number, string $text): void
+    {
+        $textLength = mb_strlen($text);
+        $delay = min(10000, max(1000, (int) ($textLength * 50)));
+
+        Log::info('[EVOLUTION] Sending composing presence', [
+            'instance' => $this->account->instance_name,
+            'number' => $number,
+            'delay' => $delay,
+        ]);
+
+        try {
+            $url = $this->account->server_url ?? config('services.evolution.url');
+            $apiKey = $this->account->api_key ?? config('services.evolution.key');
+
+            $url = "{$url}/chat/sendPresence/{$this->account->instance_name}";
+
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'apikey' => $apiKey,
+            ])->withOptions([
+                'verify' => false,
+            ])->post($url, [
+                'number' => $number,
+                'delay' => $delay,
+                'presence' => 'composing',
+            ]);
+
+            if ($response->failed()) {
+                Log::warning('[EVOLUTION] Presence failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return;
+            }
+
+            Log::info('[EVOLUTION] Presence sent');
+        } catch (Exception $e) {
+            Log::warning('[EVOLUTION] Presence failed', [
+                'error' => $e->getMessage(),
+            ]);
         }
     }
 
