@@ -7,7 +7,8 @@ use App\Http\Controllers\Api\TenantController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\WhatsAppWebhookController;
 
-
+//http://192.168.2.9:8000/api/agent/message
+// API Endpoints for AI Agent (n8n)
 
 
 Route::post('/agent/message', AgentController::class);
