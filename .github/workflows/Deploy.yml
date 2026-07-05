@@ -1,0 +1,16 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Actualizar aplicación
+        run: |
+          cd /Dockers/docker-podosof/podosoft/
+          git pull origin master
