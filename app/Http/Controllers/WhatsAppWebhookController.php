@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\TenantWhatsAppAccount;
-use App\Services\AgentService;
 use App\Services\EvolutionApiService;
+use App\Services\PodosoftKnowledgeSyncService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 
@@ -139,6 +139,10 @@ class WhatsAppWebhookController extends Controller
 
         $account->update($updateData);
 
+        if ($newStatus === 'connected') {
+            $this->syncKnowledgeBase($account->tenant_id);
+        }
+
         Log::info('[WhatsAppWebhook] Account updated', [
             'instance' => $account->instance_name,
             'tenant_id' => $account->tenant_id,
@@ -260,17 +264,28 @@ class WhatsAppWebhookController extends Controller
             $evolutionApi = app(EvolutionApiService::class)->fromAccount($account);
             $evolutionApi->markMessageAsRead($account->instance_name, $messageData);
 
-            $agentService = app(AgentService::class);
-            $response = $agentService->handleMessage($phone, $message, $account->tenant_id);
+            $tenantSlug = $account->tenant?->slug ?? '';
 
-            Log::info('[WhatsAppWebhook] Agent response sent', [
+            // Async: enqueue the agent processing so the webhook returns
+            // immediately. The worker handles the (potentially slow) LLM call
+            // and sends the reply — the single-threaded dev server never blocks
+            // the Python service's by-phone callback (no deadlock).
+            \App\Jobs\ProcessInboundWhatsAppMessage::dispatch(
+                $account->instance_name,
+                $phone,
+                $message,
+                $account->tenant_id,
+                $tenantSlug,
+            );
+
+            Log::info('[WhatsAppWebhook] Message queued for agent', [
                 'instance' => $account->instance_name,
                 'tenant_id' => $account->tenant_id,
                 'phone' => $phone,
-                'response' => $response['message'] ?? 'no response',
+                'queue' => config('queue.default'),
             ]);
         } catch (\Exception $e) {
-            Log::error('[WhatsAppWebhook] Error processing message', [
+            Log::error('[WhatsAppWebhook] Error queueing message', [
                 'instance' => $account->instance_name,
                 'tenant_id' => $account->tenant_id,
                 'phone' => $phone,
@@ -343,5 +358,27 @@ class WhatsAppWebhookController extends Controller
         }
 
         return null;
+    }
+
+    /**
+     * Push the tenant's knowledge base to the Python AI service.
+     *
+     * Called whenever the WhatsApp account is (re)connected so the assistant
+     * always has fresh static data (services, hours, locations) even when the
+     * Redis copy in Python has expired.
+     */
+    protected function syncKnowledgeBase(int $tenantId): void
+    {
+        try {
+            $sync = app(PodosoftKnowledgeSyncService::class);
+            if ($sync->configured()) {
+                $sync->push($tenantId);
+            }
+        } catch (\Exception $e) {
+            Log::warning('[WhatsAppWebhook] Knowledge sync skipped', [
+                'tenant_id' => $tenantId,
+                'error' => $e->getMessage(),
+            ]);
+        }
     }
 }

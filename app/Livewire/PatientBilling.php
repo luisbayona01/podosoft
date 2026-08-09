@@ -54,7 +54,7 @@ class PatientBilling extends Component
         
         // Try to find the last pending appointment to pre-fill
         $cita = Cita::where('paciente_id', $this->patientId)
-            ->where('estado', '!=', 'Cancelada')
+            ->whereNotIn('estado', ['cancelada', 'no_asistio', 'pagada'])
             ->orderBy('fecha_hora', 'desc')
             ->first();
 
@@ -112,6 +112,18 @@ class PatientBilling extends Component
     {
         $this->validate();
 
+        if ($this->cita_id) {
+            $alreadyPaid = Pago::where('cita_id', $this->cita_id)
+                ->where('estado', '!=', 'anulado')
+                ->when($this->pagoId, fn ($q) => $q->where('id', '!=', $this->pagoId))
+                ->exists();
+
+            if ($alreadyPaid) {
+                session()->flash('error', 'Esta cita ya tiene un pago registrado.');
+                return;
+            }
+        }
+
         $data = [
             'tenant_id' => auth()->user()->tenant_id ?? 1,
             'paciente_id' => $this->patientId,
@@ -132,6 +144,9 @@ class PatientBilling extends Component
             session()->flash('message', 'Pago actualizado correctamente.');
         } else {
             Pago::create($data);
+            if ($this->cita_id) {
+                Cita::where('id', $this->cita_id)->update(['estado' => 'pagada']);
+            }
             session()->flash('message', 'Pago registrado exitosamente.');
         }
 
@@ -141,7 +156,22 @@ class PatientBilling extends Component
 
     public function voidPayment($id)
     {
-        Pago::findOrFail($id)->update(['estado' => 'anulado']);
+        $pago = Pago::findOrFail($id);
+        $pago->update(['estado' => 'anulado']);
+
+        if ($pago->cita_id) {
+            $hasOtherPayment = Pago::where('cita_id', $pago->cita_id)
+                ->where('estado', '!=', 'anulado')
+                ->where('id', '!=', $pago->id)
+                ->exists();
+
+            if (! $hasOtherPayment) {
+                Cita::where('id', $pago->cita_id)
+                    ->where('estado', 'pagada')
+                    ->update(['estado' => 'confirmada']);
+            }
+        }
+
         session()->flash('message', 'Pago anulado correctamente.');
     }
 

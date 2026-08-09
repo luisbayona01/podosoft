@@ -15,7 +15,7 @@
                         <label class="text-xs font-semibold text-slate-500 uppercase">Cita Relacionada</label>
                         <select wire:model="cita_id" class="w-full py-2 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm">
                             <option value="">Seleccione cita...</option>
-                            @foreach(\App\Models\Cita::where('paciente_id', $patientId)->where('estado', '!=', 'Cancelada')->get() as $cita)
+                            @foreach(\App\Models\Cita::where('paciente_id', $patientId)->whereNotIn('estado', ['cancelada', 'no_asistio', 'pagada'])->get() as $cita)
                                 <option value="{{ $cita->id }}">{{ $cita->fecha_hora->format('d/m/Y H:i') }} - {{ $cita->estado }}</option>
                             @endforeach
                         </select>

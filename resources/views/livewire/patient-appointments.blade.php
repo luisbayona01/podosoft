@@ -26,7 +26,7 @@
                     </div>
                     
                     <div class="text-right">
-                        <span class="px-3 py-1 rounded-full text-xs font-bold {{ $cita->estado === 'Completada' ? 'bg-emerald-100 text-emerald-700' : 'bg-yellow-100 text-yellow-700' }}">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold {{ strtolower($cita->estado) === 'completada' ? 'bg-emerald-100 text-emerald-700' : (strtolower($cita->estado) === 'pagada' ? 'bg-emerald-600 text-white' : 'bg-yellow-100 text-yellow-700') }}">
                             {{ $cita->estado }}
                         </span>
                         <div class="mt-1 text-[10px] text-gray-400">

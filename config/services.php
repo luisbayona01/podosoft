@@ -65,5 +65,10 @@ return [
         'url' => env('EVOLUTION_API_URL'),
     ],
 
+    'python_ai' => [
+        'url' => env('PYTHON_AI_URL'),
+        'timeout' => env('PYTHON_AI_TIMEOUT', 30),
+        'token' => env('PYTHON_AI_TOKEN'),
+    ],
 
 ];

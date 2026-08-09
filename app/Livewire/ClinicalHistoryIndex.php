@@ -36,7 +36,7 @@ class ClinicalHistoryIndex extends Component
         $patient = Paciente::findOrFail($this->patientId);
         $lastHistory = HistoriaClinica::where('paciente_id', $this->patientId)->latest()->first();
         $selectedHistory = $this->selectedHistoryId
-            ? HistoriaClinica::with('fotografias')->find($this->selectedHistoryId)
+            ? HistoriaClinica::with(['fotografias', 'documentos'])->find($this->selectedHistoryId)
             : null;
 
         return view('livewire.clinical-history-index', [

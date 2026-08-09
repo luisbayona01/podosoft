@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\URL;
 class AgentService
 {
     public function __construct(
-        protected AIService $aiService,
+        protected AIServiceInterface $aiService,
         protected ConversationService $conversationService,
         protected WhatsAppService $whatsAppService,
         protected EntityResolutionService $entityResolutionService,
@@ -91,68 +91,6 @@ class AgentService
             'is_greeting' => $isGreetingMessage,
             'conversation_step' => $conversationStep,
         ]);
-
-        /**
-         * FLUJO:
-         *
-         * 1. Si conversation_step es null/INITIAL → Saludo + Solicitar documento
-         *
-         * 2. Si conversation_step es WAITING_DOCUMENT:
-         *    - Si el mensaje ES un documento → Validar
-         *    - Si el mensaje NO es un documento → Ignorar/Repetir solicitud
-         *
-         * 3. Si conversation_step es PATIENT_NOT_FOUND o PATIENT_FOUND:
-         *    - Si el mensaje NO es un documento → Reiniciar flujo (Saludo)
-         *    - Si el mensaje ES un documento → Procesar como nuevo documento
-         *
-         * 4. Otros estados → Enviar a IA para procesar normalmente
-         */
-
-        $shouldGreet = !$conversationStep
-            || $conversationStep === 'INITIAL'
-            || ($conversationStep !== 'WAITING_DOCUMENT' && !$isDocumentMessage);
-
-        if ($shouldGreet) {
-            Log::channel('single')->info('[STEP 5b] Estado inicial o mensaje no es documento - Solicitando documento', [
-                'conversation_step' => $conversationStep,
-                'is_document' => $isDocumentMessage,
-            ]);
-
-            // Limpiar cualquier dato previo del estado (no confiar)
-            $context['documento'] = null;
-            $context['nombre'] = null;
-            $context['apellido'] = null;
-            $context['patient_found'] = false;
-            $context['registered'] = false;
-            $context['conversation_step'] = 'WAITING_DOCUMENT';
-
-            $this->conversationService->setDocumentPendingState($phone, $tenantId, 'WAITING_DOCUMENT');
-
-            $finalMessage = "¡Hola! 👋\n\nSoy el asistente virtual de {$clinicName}.\n\nCon gusto te ayudaré.\n\nPara continuar necesito validar tu identidad.\n\nPor favor indícame tu tipo y número de documento.";
-
-            Log::channel('single')->info('[STEP 5c] Mensaje de saludo enviado', [
-                'final_message' => $finalMessage,
-            ]);
-
-            $this->whatsAppService->forTenant($tenantId)->sendText($phone, $finalMessage);
-
-            $history[] = ['role' => 'user', 'text' => $message];
-            $history[] = ['role' => 'model', 'text' => $finalMessage];
-
-            $this->conversationService->setState($phone, array_merge($context, [
-                'history' => $history,
-                'intent' => 'GREETING',
-                'step' => 'GREETING',
-                'tenant_id' => $tenantId,
-            ]), $tenantId);
-
-            Log::channel('single')->info('[STEP 6] Proceso completado - Saludo enviado', [
-                'phone' => $phone,
-            ]);
-            Log::channel('single')->info('═══════════════════════════════════════════════════════════════', []);
-
-            return ['message' => $finalMessage];
-        }
 
         if ($conversationStep === 'WAITING_DOCUMENT') {
             Log::channel('single')->info('[STEP 6] Estado WAITING_DOCUMENT - procesando documento directamente', [

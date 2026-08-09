@@ -109,7 +109,7 @@ class AppointmentManager extends Component
                 'profesional_id' => $this->profesional_id,
                 'sede_id' => $this->sede_id,
                 'fecha_hora' => $this->fecha_hora,
-                'estado' => 'Pendiente',
+                'estado' => 'pendiente',
             ]);
             
             $servicio = Servicio::findOrFail($this->servicio_id);

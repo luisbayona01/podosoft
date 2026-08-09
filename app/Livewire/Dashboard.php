@@ -27,9 +27,9 @@ class Dashboard extends Component
                 'income_month' => Pago::where('tenant_id', $tenant_id)->whereDate('fecha_pago', '>=', $startOfMonth)->sum('monto_final'),
                 'total_payments' => Pago::where('tenant_id', $tenant_id)->count(),
                 'appointments_today' => Cita::where('tenant_id', $tenant_id)->whereDate('fecha_hora', $today)->count(),
-                'patients_today' => Cita::where('tenant_id', $tenant_id)->whereDate('fecha_hora', $today)->where('estado', 'Completada')->count(),
-                'appointments_pending' => Cita::where('tenant_id', $tenant_id)->where('estado', 'Pendiente')->count(),
-                'appointments_cancelled' => Cita::where('tenant_id', $tenant_id)->where('estado', 'Cancelada')->count(),
+                'patients_today' => Cita::where('tenant_id', $tenant_id)->whereDate('fecha_hora', $today)->whereIn('estado', ['completada', 'pagada'])->count(),
+                'appointments_pending' => Cita::where('tenant_id', $tenant_id)->where('estado', 'pendiente')->count(),
+                'appointments_cancelled' => Cita::where('tenant_id', $tenant_id)->where('estado', 'cancelada')->count(),
             ],
             'chart_income_day' => Pago::where('tenant_id', $tenant_id)
                 ->where('fecha_pago', '>=', now()->subDays(30))

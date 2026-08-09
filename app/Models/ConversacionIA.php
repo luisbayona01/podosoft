@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ConversacionIA extends Model {
     protected $table = 'conversaciones_ia';
-    protected $fillable = ['tenant_id', 'paciente_id', 'telefono', 'estado', 'intencion_detectada', 'confianza_modelo', 'requiere_humano', 'ultima_interaccion', 'metadata'];
-    protected $casts = ['metadata' => 'array'];
+    protected $fillable = ['tenant_id', 'paciente_id', 'telefono', 'estado', 'intencion_detectada', 'confianza_modelo', 'requiere_humano', 'ultima_interaccion', 'metadata', 'migrated_to_python'];
+    protected $casts = ['metadata' => 'array', 'migrated_to_python' => 'boolean'];
 
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function paciente(): BelongsTo { return $this->belongsTo(Paciente::class); }
