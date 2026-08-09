@@ -20,6 +20,10 @@ class HistoriaClinica extends Model
   {
     return $this->hasMany(FotografiaClinica::class);
   }
+  public function documentos(): HasMany
+  {
+    return $this->hasMany(DocumentoClinico::class);
+  }
   public function hallazgos(): HasMany
   {
     return $this->hasMany(ConsultaHallazgo::class);

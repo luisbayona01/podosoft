@@ -39,6 +39,18 @@
                     </span>
                 @endif
             </button>
+            <button wire:click="setTab('documents')"
+                class="flex items-center gap-2 px-4 py-2 text-sm font-bold rounded-lg transition-all {{ $activeTab === 'documents' ? 'bg-white text-indigo-600 shadow-sm' : 'text-slate-500 hover:text-slate-700' }}">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Consentimiento y Documentos
+                @if($selectedHistory->documentos->count() > 0)
+                    <span class="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-bold rounded-full">
+                        {{ $selectedHistory->documentos->count() }}
+                    </span>
+                @endif
+            </button>
         </div>
 
         <div class="animate-in fade-in slide-in-from-bottom-2 duration-300">
@@ -107,6 +119,32 @@
                         </div>
                     </div>
                     <livewire:clinical-history-photos :historyId="$selectedHistory->id" />
+                </div>
+            @elseif($activeTab === 'documents')
+                <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+                    <div class="space-y-3 mb-4 pb-3 border-b border-slate-100">
+                        <div class="flex items-center gap-2">
+                            <svg class="w-5 h-5 text-emerald-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                            <h4 class="font-bold text-slate-700">Documentos de esta Nota</h4>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Fecha</span>
+                                <p class="text-slate-700 font-medium">{{ $selectedHistory->created_at->format('d/m/Y H:i') }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Diagnóstico</span>
+                                <p class="text-slate-700 font-medium">{{ $selectedHistory->diagnostico }}</p>
+                            </div>
+                            <div>
+                                <span class="text-xs font-bold text-slate-400 uppercase">Procedimiento</span>
+                                <p class="text-slate-700">{{ $selectedHistory->procedimiento }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    <livewire:clinical-history-documents :historyId="$selectedHistory->id" />
                 </div>
             @endif
         </div>

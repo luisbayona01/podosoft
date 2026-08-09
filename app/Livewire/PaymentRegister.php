@@ -43,13 +43,17 @@ class PaymentRegister extends Component
     public function mount($id = null, $citaId = null)
     {
         $this->pagoId = $id;
-        $this->citaId = $citaId;
+        $this->citaId = $citaId ?? request()->query('citaId');
 
         if ($id) {
             $pago = Pago::findOrFail($id);
             $this->fillPago($pago);
-        } elseif ($citaId) {
-            $this->prepareFromCita($citaId);
+        } elseif ($this->citaId) {
+            if (Pago::where('cita_id', $this->citaId)->where('estado', '!=', 'anulado')->exists()) {
+                session()->flash('error', 'Esta cita ya tiene un pago registrado.');
+                return redirect()->route('appointments.index');
+            }
+            $this->prepareFromCita($this->citaId);
         }
     }
 
@@ -101,6 +105,18 @@ class PaymentRegister extends Component
     {
         $this->validate();
 
+        if ($this->cita_id) {
+            $alreadyPaid = Pago::where('cita_id', $this->cita_id)
+                ->where('estado', '!=', 'anulado')
+                ->when($this->pagoId, fn ($q) => $q->where('id', '!=', $this->pagoId))
+                ->exists();
+
+            if ($alreadyPaid) {
+                session()->flash('error', 'Esta cita ya tiene un pago registrado.');
+                return redirect()->route('appointments.index');
+            }
+        }
+
         $data = [
             'tenant_id' => auth()->user()->tenant_id ?? 1,
             'paciente_id' => $this->paciente_id,
@@ -121,6 +137,9 @@ class PaymentRegister extends Component
             session()->flash('message', 'Pago actualizado correctamente.');
         } else {
             Pago::create($data);
+            if ($this->cita_id) {
+                Cita::where('id', $this->cita_id)->update(['estado' => 'pagada']);
+            }
             session()->flash('message', 'Pago registrado exitosamente.');
         }
 
@@ -130,9 +149,23 @@ class PaymentRegister extends Component
     public function void()
     {
         if (!$this->pagoId) return;
-        
+
         $pago = Pago::findOrFail($this->pagoId);
         $pago->update(['estado' => 'anulado']);
+
+        if ($pago->cita_id) {
+            $hasOtherPayment = Pago::where('cita_id', $pago->cita_id)
+                ->where('estado', '!=', 'anulado')
+                ->where('id', '!=', $pago->id)
+                ->exists();
+
+            if (! $hasOtherPayment) {
+                Cita::where('id', $pago->cita_id)
+                    ->where('estado', 'pagada')
+                    ->update(['estado' => 'confirmada']);
+            }
+        }
+
         session()->flash('message', 'Pago anulado correctamente.');
         return redirect()->route('appointments.index');
     }

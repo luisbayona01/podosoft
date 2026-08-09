@@ -7,7 +7,7 @@ use OpenAI;
 use OpenAI\Client;
 use Exception;
 
-class AIService
+class AIService implements AIServiceInterface
 {
     private Client $client;
     private string $model;
@@ -91,7 +91,7 @@ class AIService
         $this->baseUrl = config('agent.base_url', 'https://integrate.api.nvidia.com/v1');
 
         $this->client = OpenAI::factory()
-            ->withApiKey(config('agent.api_key'))
+            ->withApiKey((string) (config('agent.api_key') ?? ''))
             ->withBaseUri($this->baseUrl)
             ->make();
     }

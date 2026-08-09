@@ -384,6 +384,18 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                             <span class="text-sm font-medium">{{ session('success') }}</span>
                         </div>
                     @endif
+                    @if(session('error'))
+                        <div
+                            class="mb-6 p-4 bg-red-50 border-l-4 border-red-500 text-red-700 rounded-r-lg flex items-center gap-3 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10" />
+                                <line x1="15" y1="9" x2="9" y2="15" />
+                                <line x1="9" y1="9" x2="15" y2="15" />
+                            </svg>
+                            <span class="text-sm font-medium">{{ session('error') }}</span>
+                        </div>
+                    @endif
                 </div>
 
                 <!-- Internal Footer -->

@@ -4,6 +4,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AppointmentController;
 use App\Http\Controllers\Api\PatientController;
 use App\Http\Controllers\Api\TenantController;
+use App\Http\Controllers\Api\InternalSignUrlController;
+use App\Http\Controllers\Api\InternalPatientsByPhoneController;
 use App\Http\Controllers\AgentController;
 use App\Http\Controllers\WhatsAppWebhookController;
 
@@ -42,4 +44,8 @@ Route::prefix('v1')->group(function () {
     // Consulta las sedes físicas disponibles y sus direcciones
     // Params: None
     Route::get('/appointments/sedes', [AppointmentController::class, 'getSedes'])->name('api.appointments.sedes');
+
+    // Internal endpoints (consumed by the Python AI service)
+    Route::post('/internal/sign-url', InternalSignUrlController::class)->name('api.internal.sign-url');
+    Route::get('/internal/patients/by-phone', InternalPatientsByPhoneController::class)->name('api.internal.patients.by-phone');
 });

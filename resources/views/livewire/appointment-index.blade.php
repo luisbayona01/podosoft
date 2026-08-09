@@ -50,6 +50,17 @@
         </div>
         <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
             <div class="flex items-center gap-4">
+                <div class="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h2m4 0h2m-8 4h8a2 2 0 002-2V8a2 2 0 00-2-2H7a2 2 0 00-2 2v9a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <p class="text-xs font-medium text-slate-500 uppercase tracking-wider">Pagadas</p>
+                    <p class="text-2xl font-bold text-slate-900">{{ $metrics['pagada'] }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center gap-4">
                 <div class="p-3 bg-red-50 text-red-600 rounded-xl">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                 </div>
@@ -58,6 +69,70 @@
                     <p class="text-2xl font-bold text-slate-900">{{ $metrics['cancelled'] }}</p>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Today's Appointments Panel -->
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm mb-8 overflow-hidden">
+        <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="p-2 bg-blue-50 text-blue-600 rounded-lg">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-slate-900">Citas para Hoy</h3>
+                    <p class="text-sm text-slate-500">{{ now()->format('l, d M Y') }}</p>
+                </div>
+            </div>
+            <span class="px-3 py-1.5 bg-blue-50 text-blue-700 text-xs font-bold uppercase tracking-wide rounded-full">
+                {{ count($todayAppointments) }} cita(s)
+            </span>
+        </div>
+        <div class="divide-y divide-slate-100">
+            @forelse($todayAppointments as $cita)
+                <div class="px-6 py-4 flex items-center justify-between gap-4 hover:bg-slate-50 transition-colors">
+                    <div class="flex items-center gap-4">
+                        <div class="w-16 shrink-0">
+                            <span class="text-lg font-bold text-slate-900">{{ $cita->fecha_hora->format('H:i') }}</span>
+                        </div>
+                        <div class="w-10 h-10 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold shrink-0">
+                            {{ strtoupper(substr($cita->paciente?->nombre ?? '?', 0, 1)) }}{{ strtoupper(substr($cita->paciente?->apellido ?? '', 0, 1)) }}
+                        </div>
+                        <div>
+                            <div class="font-semibold text-slate-900">{{ $cita->paciente?->nombre }} {{ $cita->paciente?->apellido }}</div>
+                            <div class="text-xs text-slate-500">
+                                {{ $cita->servicios->pluck('nombre')->join(', ') ?: 'Sin servicios' }}
+                                &middot; {{ $cita->profesional?->nombre ?? 'Sin asignar' }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3 shrink-0">
+                        @php $estadoToday = strtolower($cita->estado); @endphp
+                        <span class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+                            {{ $estadoToday === 'pagada' ? 'bg-emerald-600 text-white' :
+                               ($estadoToday === 'completada' ? 'bg-emerald-100 text-emerald-700' :
+                               ($estadoToday === 'confirmada' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700')) }}">
+                            {{ $cita->estado }}
+                        </span>
+                        @unless($estadoToday === 'pagada')
+                            <a href="{{ route('payments.create', ['citaId' => $cita->id]) }}" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Registrar Pago">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </a>
+                        @else
+                            <span class="p-2 text-emerald-700 bg-emerald-50 rounded-lg" title="Pago registrado">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </span>
+                        @endunless
+                    </div>
+                </div>
+            @empty
+                <div class="px-6 py-10 text-center text-slate-400">
+                    <div class="flex flex-col items-center justify-center">
+                        <svg class="w-10 h-10 mb-3 opacity-20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        <p class="italic">No tienes citas programadas para hoy.</p>
+                    </div>
+                </div>
+            @endforelse
         </div>
     </div>
 
@@ -76,10 +151,12 @@
         <div>
             <select wire:model.live="status" class="w-full py-2 px-3 bg-slate-50 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all outline-none text-sm">
                 <option value="">Todos los estados</option>
-                <option value="Pendiente">Pendiente</option>
-                <option value="Confirmada">Confirmada</option>
-                <option value="Completada">Completada</option>
-                <option value="Cancelada">Cancelada</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="confirmada">Confirmada</option>
+                <option value="pagada">Pagada</option>
+                <option value="completada">Completada</option>
+                <option value="cancelada">Cancelada</option>
+                <option value="no_asistio">No asistió</option>
             </select>
         </div>
     </div>
@@ -115,19 +192,28 @@
                                 <div class="text-slate-900 font-medium">{{ $cita->profesional->nombre ?? 'Sin asignar' }}</div>
                                 <div class="text-xs text-slate-500">{{ $cita->sede->nombre ?? 'Sede no definida' }}</div>
                             </td>
+                            @php $estadoLabel = strtolower($cita->estado); @endphp
                             <td class="px-6 py-4 text-center">
-                                <span class="px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
-                                    {{ $cita->estado === 'Completada' ? 'bg-emerald-100 text-emerald-700' : 
-                                       ($cita->estado === 'Cancelada' ? 'bg-red-100 text-red-700' : 
-                                       ($cita->estado === 'Confirmada' ? 'bg-blue-100 text-blue-700' : 'bg-yellow-100 text-yellow-700')) }}">
+                                <span class="inline-flex px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide
+                                    {{ $estadoLabel === 'pagada' ? 'bg-emerald-600 text-white' :
+                                       ($estadoLabel === 'completada' ? 'bg-emerald-100 text-emerald-700' :
+                                       ($estadoLabel === 'cancelada' ? 'bg-red-100 text-red-700' :
+                                       ($estadoLabel === 'confirmada' ? 'bg-blue-100 text-blue-700' :
+                                       ($estadoLabel === 'no_asistio' ? 'bg-orange-100 text-orange-700' : 'bg-yellow-100 text-yellow-700')))) }}">
                                     {{ $cita->estado }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
                                 <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    @unless($estadoLabel === 'pagada')
                                     <a href="{{ route('payments.create', ['citaId' => $cita->id]) }}" class="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all" title="Registrar Pago">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                                     </a>
+@else
+                                    <span class="p-2 text-emerald-700 bg-emerald-50 rounded-lg" title="Pago registrado">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    </span>
+@endunless
                                     <button wire:click="updateStatus({{ $cita->id }}, 'Confirmada')" class="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all" title="Confirmar">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
                                     </button>

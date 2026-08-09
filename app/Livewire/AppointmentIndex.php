@@ -18,14 +18,14 @@ class AppointmentIndex extends Component
     public function updateStatus($citaId, $newStatus)
     {
         $cita = Cita::findOrFail($citaId);
-        $cita->update(['estado' => $newStatus]);
+        $cita->update(['estado' => strtolower($newStatus)]);
         session()->flash('message', "Cita actualizada a $newStatus");
     }
 
     public function cancelAppointment($citaId)
     {
         $cita = Cita::findOrFail($citaId);
-        $cita->update(['estado' => 'Cancelada']);
+        $cita->update(['estado' => 'cancelada']);
         session()->flash('message', 'Cita cancelada exitosamente');
     }
 
@@ -40,21 +40,25 @@ class AppointmentIndex extends Component
         return [
             'today' => Cita::where('tenant_id', $tenant_id)
                 ->whereDate('fecha_hora', now()->toDateString())
+                ->whereNotIn('estado', ['cancelada', 'no_asistio'])
                 ->count(),
             'pending' => Cita::where('tenant_id', $tenant_id)
-                ->where('estado', 'Pendiente')
+                ->where('estado', 'pendiente')
                 ->count(),
             'confirmed' => Cita::where('tenant_id', $tenant_id)
-                ->where('estado', 'Confirmada')
+                ->where('estado', 'confirmada')
+                ->count(),
+            'pagada' => Cita::where('tenant_id', $tenant_id)
+                ->where('estado', 'pagada')
                 ->count(),
             'cancelled' => Cita::where('tenant_id', $tenant_id)
-                ->where('estado', 'Cancelada')
+                ->where('estado', 'cancelada')
                 ->count(),
             'no_show' => Cita::where('tenant_id', $tenant_id)
-                ->where('estado', 'No asistió')
+                ->where('estado', 'no_asistio')
                 ->count(),
             'completed' => Cita::where('tenant_id', $tenant_id)
-                ->where('estado', 'Completada')
+                ->where('estado', 'completada')
                 ->count(),
         ];
     }
@@ -80,8 +84,16 @@ class AppointmentIndex extends Component
             ->orderBy('fecha_hora', 'asc')
             ->paginate(15);
 
+        $todayAppointments = Cita::with(['paciente', 'profesional', 'servicios'])
+            ->where('tenant_id', $tenant_id)
+            ->whereDate('fecha_hora', now()->toDateString())
+            ->whereNotIn('estado', ['cancelada', 'no_asistio'])
+            ->orderBy('fecha_hora', 'asc')
+            ->get();
+
         return view('livewire.appointment-index', [
             'appointments' => $appointments,
+            'todayAppointments' => $todayAppointments,
             'metrics' => $this->getMetrics()
         ]);
     }
