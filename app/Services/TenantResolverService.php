@@ -64,7 +64,6 @@ class TenantResolverService
             'nombre' => $tenant->nombre,
             'slug' => $tenant->slug,
             'logo' => $tenant->logo,
-            'telefono' => $tenant->telefono,
             'email' => $tenant->email,
             'direccion' => $tenant->direccion,
         ];

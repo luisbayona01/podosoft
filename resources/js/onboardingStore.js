@@ -57,7 +57,6 @@ export const onboardingStore = {
         return {
             clinic_name: clinic.clinic_name || '',
             clinic_nit: clinic.clinic_nit || '',
-            clinic_phone: clinic.clinic_phone || '',
             clinic_email: clinic.clinic_email || '',
             clinic_city: clinic.clinic_city || '',
             clinic_address: clinic.clinic_address || '',
@@ -66,7 +65,6 @@ export const onboardingStore = {
             admin_document: admin.admin_document || '',
             admin_licencia: admin.admin_licencia || '',
             admin_email: admin.admin_email || '',
-            admin_phone: admin.admin_phone || '',
             admin_password: admin.admin_password || '',
             admin_password_confirmation: admin.admin_password_confirmation || '',
         };

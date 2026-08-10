@@ -17,7 +17,7 @@ use Illuminate\Support\Facades\Log;
  * hours, locations) even if the Redis copy expired.
  *
  * Contract (POST {PYTHON_AI_URL}/internal/knowledge/sync):
- *   request:  {tenant_id, name, horarios, direccion, telefono,
+ *   request:  {tenant_id, name, horarios, direccion,
  *              servicios: [{id,nombre,duracion,precio}], faq, politicas, promociones}
  *   response: 204 No Content
  */
@@ -49,7 +49,6 @@ class PodosoftKnowledgeSyncService
             'slug' => $tenant->slug ?? '',
             'horarios' => $horarios,
             'direccion' => $tenant->direccion ?? '',
-            'telefono' => $tenant->telefono ?? '',
             'servicios' => ($tenant->servicios ?? collect())
                 ->where('activo', true)
                 ->map(fn ($s) => [

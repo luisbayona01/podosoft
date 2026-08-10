@@ -19,7 +19,6 @@ class Onboarding extends Component
 
     public $clinic_name = '';
     public $clinic_nit = '';
-    public $clinic_phone = '';
     public $clinic_email = '';
     public $clinic_city = '';
     public $clinic_address = '';
@@ -29,14 +28,12 @@ class Onboarding extends Component
     public $admin_document = '';
     public $admin_licencia = '';
     public $admin_email = '';
-    public $admin_phone = '';
     public $admin_password = '';
     public $admin_password_confirmation = '';
 
     protected $rules = [
         'clinic_name' => 'required|string|max:255',
         'clinic_nit' => 'required|string|max:50',
-        'clinic_phone' => 'required|string|min:7|max:20',
         'clinic_email' => 'required|email|max:255',
         'clinic_city' => 'required|string|max:100',
         'clinic_address' => 'required|string|max:500',
@@ -45,7 +42,6 @@ class Onboarding extends Component
         'admin_document' => 'required|string|min:5|max:50',
         'admin_licencia' => 'required|string|max:50',
         'admin_email' => 'required|email|max:255',
-        'admin_phone' => 'required|string|min:7|max:20',
         'admin_password' => 'required|string|min:8|confirmed',
     ];
 
@@ -54,8 +50,6 @@ class Onboarding extends Component
         return [
             'clinic_name.required' => 'El nombre de la clínica es obligatorio.',
             'clinic_nit.required' => 'El NIT/RUT es obligatorio.',
-            'clinic_phone.required' => 'El teléfono es obligatorio.',
-            'clinic_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
             'clinic_email.required' => 'El correo electrónico es obligatorio.',
             'clinic_email.email' => 'Ingrese un correo electrónico válido.',
             'clinic_city.required' => 'La ciudad es obligatoria.',
@@ -67,8 +61,6 @@ class Onboarding extends Component
             'admin_licencia.required' => 'El número de licencia es obligatorio.',
             'admin_email.required' => 'El correo electrónico es obligatorio.',
             'admin_email.email' => 'Ingrese un correo electrónico válido.',
-            'admin_phone.required' => 'El teléfono es obligatorio.',
-            'admin_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
             'admin_password.required' => 'La contraseña es obligatoria.',
             'admin_password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'admin_password.confirmed' => 'La confirmación de contraseña no coincide.',
@@ -84,7 +76,6 @@ class Onboarding extends Component
 
         $this->clinic_name = $stored['clinic_name'] ?? '';
         $this->clinic_nit = $stored['clinic_nit'] ?? '';
-        $this->clinic_phone = $stored['clinic_phone'] ?? '';
         $this->clinic_email = $stored['clinic_email'] ?? '';
         $this->clinic_city = $stored['clinic_city'] ?? '';
         $this->clinic_address = $stored['clinic_address'] ?? '';
@@ -93,7 +84,6 @@ class Onboarding extends Component
         $this->admin_document = $stored['admin_document'] ?? '';
         $this->admin_licencia = $stored['admin_licencia'] ?? '';
         $this->admin_email = $stored['admin_email'] ?? '';
-        $this->admin_phone = $stored['admin_phone'] ?? '';
         $this->step = $stored['step'] ?? 1;
     }
 
@@ -103,7 +93,6 @@ class Onboarding extends Component
             'step' => $this->step,
             'clinic_name' => $this->clinic_name,
             'clinic_nit' => $this->clinic_nit,
-            'clinic_phone' => $this->clinic_phone,
             'clinic_email' => $this->clinic_email,
             'clinic_city' => $this->clinic_city,
             'clinic_address' => $this->clinic_address,
@@ -112,7 +101,6 @@ class Onboarding extends Component
             'admin_document' => $this->admin_document,
             'admin_licencia' => $this->admin_licencia,
             'admin_email' => $this->admin_email,
-            'admin_phone' => $this->admin_phone,
         ];
 
         return response()->json(['saved' => true])
@@ -125,7 +113,6 @@ class Onboarding extends Component
             $this->validate([
                 'clinic_name' => 'required|string|max:255',
                 'clinic_nit' => 'required|string|max:50',
-                'clinic_phone' => 'required|string|min:7|max:20',
                 'clinic_email' => 'required|email|max:255',
                 'clinic_city' => 'required|string|max:100',
                 'clinic_address' => 'required|string|max:500',
@@ -137,7 +124,6 @@ class Onboarding extends Component
                 'admin_document' => 'required|string|min:5|max:50',
                 'admin_licencia' => 'required|string|max:50',
                 'admin_email' => 'required|email|max:255',
-                'admin_phone' => 'required|string|min:7|max:20',
                 'admin_password' => 'required|string|min:8|confirmed',
             ]);
         }
@@ -224,7 +210,6 @@ class Onboarding extends Component
             'nombre' => $this->clinic_name,
             'slug' => $slug,
             'nit' => $this->clinic_nit,
-            'telefono' => $this->clinic_phone,
             'email' => $this->clinic_email,
             'direccion' => $this->clinic_address,
             'activo' => true,
@@ -252,7 +237,6 @@ class Onboarding extends Component
             'apellido' => $this->admin_apellido,
             'documento' => $this->admin_document,
             'numero_licencia' => $this->admin_licencia,
-            'telefono' => $this->admin_phone,
             'email' => $this->admin_email,
             'activo' => true,
         ]);
@@ -266,7 +250,6 @@ class Onboarding extends Component
             'password' => Hash::make($this->admin_password),
             'tenant_id' => $tenant->id,
             'documento' => $this->admin_document,
-            'telefono' => $this->admin_phone,
             'professional_id' => $professional->id,
         ]);
     }
