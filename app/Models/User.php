@@ -25,7 +25,6 @@ class User extends Authenticatable
         'password',
         'tenant_id',
         'documento',
-        'telefono',
         'professional_id',
     ];
 

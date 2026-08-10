@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Profesional extends Model {
     protected $table = 'profesionales';
-    protected $fillable = ['tenant_id', 'nombre', 'apellido', 'especialidad', 'numero_licencia', 'documento', 'telefono', 'email', 'activo'];
+    protected $fillable = ['tenant_id', 'nombre', 'apellido', 'especialidad', 'numero_licencia', 'documento', 'email', 'activo'];
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function user() { return $this->hasOne(User::class); }
     public function citas(): HasMany { return $this->hasMany(Cita::class); }

@@ -20,7 +20,6 @@ class OnboardingController extends Controller
         $data = $request->validate([
             'clinic_name' => 'required|string|max:255',
             'clinic_nit' => 'required|string|max:50',
-            'clinic_phone' => 'required|string|min:7|max:20',
             'clinic_email' => 'required|email|max:255',
             'clinic_city' => 'required|string|max:100',
             'clinic_address' => 'required|string|max:500',
@@ -29,13 +28,10 @@ class OnboardingController extends Controller
             'admin_document' => 'required|string|min:5|max:50',
             'admin_licencia' => 'required|string|max:50',
             'admin_email' => 'required|email|max:255',
-            'admin_phone' => 'required|string|min:7|max:20',
             'admin_password' => 'required|string|min:8|confirmed',
         ], [
             'clinic_name.required' => 'El nombre de la clínica es obligatorio.',
             'clinic_nit.required' => 'El NIT/RUT es obligatorio.',
-            'clinic_phone.required' => 'El teléfono es obligatorio.',
-            'clinic_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
             'clinic_email.required' => 'El correo electrónico es obligatorio.',
             'clinic_email.email' => 'Ingrese un correo electrónico válido.',
             'clinic_city.required' => 'La ciudad es obligatoria.',
@@ -47,8 +43,6 @@ class OnboardingController extends Controller
             'admin_licencia.required' => 'El número de licencia es obligatorio.',
             'admin_email.required' => 'El correo electrónico es obligatorio.',
             'admin_email.email' => 'Ingrese un correo electrónico válido.',
-            'admin_phone.required' => 'El teléfono es obligatorio.',
-            'admin_phone.min' => 'El teléfono debe tener al menos 7 dígitos.',
             'admin_password.required' => 'La contraseña es obligatoria.',
             'admin_password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             'admin_password.confirmed' => 'La confirmación de contraseña no coincide.',
@@ -87,7 +81,6 @@ class OnboardingController extends Controller
             'nombre' => $data['clinic_name'],
             'slug' => $slug,
             'nit' => $data['clinic_nit'],
-            'telefono' => $data['clinic_phone'],
             'email' => $data['clinic_email'],
             'direccion' => $data['clinic_address'],
             'activo' => true,
@@ -115,7 +108,6 @@ class OnboardingController extends Controller
             'apellido' => $data['admin_apellido'],
             'documento' => $data['admin_document'],
             'numero_licencia' => $data['admin_licencia'],
-            'telefono' => $data['admin_phone'],
             'email' => $data['admin_email'],
             'activo' => true,
         ]);
@@ -129,7 +121,6 @@ class OnboardingController extends Controller
             'password' => Hash::make($data['admin_password']),
             'tenant_id' => $tenant->id,
             'documento' => $data['admin_document'],
-            'telefono' => $data['admin_phone'],
             'professional_id' => $professional->id,
         ]);
     }

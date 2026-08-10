@@ -24,9 +24,6 @@ class ProfesionalCreate extends Component
     #[Rule('required|string|max:20')]
     public $documento = '';
 
-    #[Rule('nullable|string|max:20')]
-    public $telefono = '';
-
     #[Rule('nullable|email|max:255')]
     public $email = '';
 
@@ -115,7 +112,6 @@ class ProfesionalCreate extends Component
             'especialidad' => $this->especialidad ? strtoupper($this->especialidad) : null,
             'numero_licencia' => $this->numero_licencia,
             'documento' => $this->documento,
-            'telefono' => $this->telefono,
             'email' => $this->email,
             'activo' => $this->activo,
         ]);

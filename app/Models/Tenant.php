@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Tenant extends Model {
-    protected $fillable = ['nombre', 'slug', 'nit', 'telefono', 'email', 'direccion', 'logo', 'plan_id', 'estado_suscripcion', 'fecha_vencimiento', 'activo'];
+    protected $fillable = ['nombre', 'slug', 'nit', 'email', 'direccion', 'logo', 'plan_id', 'estado_suscripcion', 'fecha_vencimiento', 'activo'];
     public function sedes(): HasMany { return $this->hasMany(Sede::class); }
     public function users(): HasMany { return $this->hasMany(User::class); }
     public function profesionales(): HasMany { return $this->hasMany(Profesional::class); }

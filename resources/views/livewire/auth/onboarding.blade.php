@@ -91,12 +91,7 @@
                                 <input type="email" wire:model.live.debounce.300ms="clinic_email" x-on:change="$wire.saveToStorage()" placeholder="clinica@email.com" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
                                 @error('clinic_email') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
                             </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono <span class="text-red-500">*</span></label>
-                                <input type="text" wire:model.live.debounce.300ms="clinic_phone" x-on:change="$wire.saveToStorage()" placeholder="Ej. 3001234567" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
-                                @error('clinic_phone') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
-                            </div>
-                            <div>
+                            <div class="md:col-span-2">
                                 <label class="block text-sm font-medium text-gray-700 mb-1.5">Ciudad <span class="text-red-500">*</span></label>
                                 <input type="text" wire:model.live.debounce.300ms="clinic_city" x-on:change="$wire.saveToStorage()" placeholder="Ej. Bogotá" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
                                 @error('clinic_city') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
@@ -166,15 +161,10 @@
                                     <input type="text" wire:model.live.debounce.300ms="admin_licencia" x-on:change="$wire.saveToStorage()" placeholder="Registro profesional" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
                                     @error('admin_licencia') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
                                 </div>
-                                <div>
+                                <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Admin <span class="text-red-500">*</span></label>
                                     <input type="email" wire:model.live.debounce.300ms="admin_email" x-on:change="$wire.saveToStorage()" placeholder="admin@email.com" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
                                     @error('admin_email') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono <span class="text-red-500">*</span></label>
-                                    <input type="text" wire:model.live.debounce.300ms="admin_phone" x-on:change="$wire.saveToStorage()" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Ej. 3001234567" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
-                                    @error('admin_phone') <p class="text-red-500 text-xs mt-1.5">{{ $message }}</p> @enderror
                                 </div>
                             </div>
                         </div>
@@ -235,7 +225,6 @@
                             <span class="text-gray-500">Nombre</span><span class="font-semibold text-gray-900 text-right">{{ $clinic_name }}</span>
                             <span class="text-gray-500">NIT</span><span class="font-semibold text-gray-900 text-right">{{ $clinic_nit }}</span>
                             <span class="text-gray-500">Email</span><span class="font-semibold text-gray-900 text-right">{{ $clinic_email }}</span>
-                            <span class="text-gray-500">Teléfono</span><span class="font-semibold text-gray-900 text-right">{{ $clinic_phone }}</span>
                             <span class="text-gray-500">Ciudad</span><span class="font-semibold text-gray-900 text-right">{{ $clinic_city }}</span>
                             <span class="text-gray-500 col-span-1">Dirección</span><span class="font-semibold text-gray-900 text-right col-span-1">{{ $clinic_address }}</span>
                         </div>
@@ -251,7 +240,6 @@
                             <span class="text-gray-500">Documento</span><span class="font-semibold text-gray-900 text-right">{{ $admin_document }}</span>
                             <span class="text-gray-500">Licencia</span><span class="font-semibold text-gray-900 text-right">{{ $admin_licencia }}</span>
                             <span class="text-gray-500">Email</span><span class="font-semibold text-gray-900 text-right">{{ $admin_email }}</span>
-                            <span class="text-gray-500">Teléfono</span><span class="font-semibold text-gray-900 text-right">{{ $admin_phone }}</span>
                         </div>
                     </div>
                 </div>
