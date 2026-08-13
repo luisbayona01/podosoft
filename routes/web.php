@@ -83,6 +83,7 @@ Route::middleware(['auth'])->group(function () {
 
     Route::prefix('patients')->name('patients.')->group(function () {
         Route::get('/', PatientIndex::class)->name('index');
+        Route::get('/import', \App\Livewire\PatientImport::class)->name('import');
         Route::get('/create', PatientCreate::class)->name('create');
         Route::get('/{patient}/edit', \App\Livewire\PatientEdit::class)->name('edit');
         Route::get('/{patient}', PatientShow::class)->name('show');
@@ -100,9 +101,12 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{profesional}/edit', \App\Livewire\ProfesionalEdit::class)->name('edit');
     });
 
-    Route::prefix('config')->name('config.')->group(function () {
+        Route::prefix('config')->name('config.')->group(function () {
         Route::get('/whatsapp', WhatsAppConfig::class)->name('whatsapp');
     });
+
+    Route::get('/whatsapp/contacts', \App\Livewire\WhatsAppContacts::class)
+        ->name('whatsapp.contacts');
 
     Route::prefix('clinical-history')->name('clinical-history.')->group(function () {
         Route::get('/', ClinicalHistoryMain::class)->name('index');

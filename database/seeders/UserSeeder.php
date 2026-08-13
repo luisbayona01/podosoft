@@ -20,11 +20,13 @@ class UserSeeder extends Seeder
                 'direccion' => 'Default Address',
             ]);
 
-        User::create([
+        $user = User::create([
             'name' => 'Administrador PodoSoft',
             'email' => 'admin@podosoft.com',
             'password' => Hash::make('password'),
             'tenant_id' => $tenant->id,
         ]);
+
+        $user->assignRole('Administrador');
     }
 }

@@ -1,4 +1,21 @@
 <div class="space-y-6">
+    <!-- Incomplete data banner -->
+    @if($patient->isInformationIncomplete())
+        <div class="p-4 bg-amber-50 border-l-4 border-amber-500 text-amber-800 rounded-xl flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-3">
+                <svg class="w-5 h-5 text-amber-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                <div>
+                    <p class="text-sm font-bold">Información incompleta - actualizar datos del paciente</p>
+                    <p class="text-xs text-amber-700">Faltan: {{ implode(', ', $patient->missingImportantFields()) }}</p>
+                </div>
+            </div>
+            <a href="{{ route('patients.edit', $patient->id) }}" class="inline-flex items-center shrink-0 px-3 py-2 text-xs font-bold text-amber-900 bg-white border border-amber-300 rounded-lg hover:bg-amber-100 transition-all gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                Actualizar datos
+            </a>
+        </div>
+    @endif
+
     <!-- Profile Header -->
     <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">

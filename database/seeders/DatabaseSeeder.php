@@ -13,6 +13,8 @@ class DatabaseSeeder extends Seeder
             TenantSeeder::class,
             UserSeeder::class,
             AntecedentTypeSeeder::class,
+            PacienteImportPermissionSeeder::class,
+            WhatsAppContactsPermissionSeeder::class,
         ]);
     }
 }
