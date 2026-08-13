@@ -84,7 +84,6 @@
                             </button>
                         </th>
                         <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Documento</th>
-                        <th class="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Teléfono</th>
                         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Estado</th>
                         <th class="text-center px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Acciones</th>
                     </tr>
@@ -105,7 +104,6 @@
                         </td>
                         <td class="px-4 py-3 text-sm text-slate-600">{{ $profesional->especialidad ?? '-' }}</td>
                         <td class="px-4 py-3 text-sm text-slate-600">{{ $profesional->documento }}</td>
-                        <td class="px-4 py-3 text-sm text-slate-600">{{ $profesional->telefono ?? '-' }}</td>
                         <td class="px-4 py-3 text-center">
                             <button wire:click="toggleActivo({{ $profesional->id }})"
                                 class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium transition-all {{ $profesional->activo ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-slate-100 text-slate-600 hover:bg-slate-200' }}">

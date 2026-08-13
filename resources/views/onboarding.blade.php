@@ -90,12 +90,7 @@
                                     <input type="email" x-model="clinic.clinic_email" @input="saveToStorage()" placeholder="clinica@email.com" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
                                     <template x-if="errors.clinic_email"><p class="text-red-500 text-xs mt-1.5" x-text="errors.clinic_email"></p></template>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono <span class="text-red-500">*</span></label>
-                                    <input type="text" x-model="clinic.clinic_phone" @input="saveToStorage()" placeholder="Ej. 3001234567" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
-                                    <template x-if="errors.clinic_phone"><p class="text-red-500 text-xs mt-1.5" x-text="errors.clinic_phone"></p></template>
-                                </div>
-                                <div>
+                                <div class="md:col-span-2">
                                     <label class="block text-sm font-medium text-gray-700 mb-1.5">Ciudad <span class="text-red-500">*</span></label>
                                     <input type="text" x-model="clinic.clinic_city" @input="saveToStorage()" placeholder="Ej. Bogotá" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all placeholder:text-gray-400">
                                     <template x-if="errors.clinic_city"><p class="text-red-500 text-xs mt-1.5" x-text="errors.clinic_city"></p></template>
@@ -166,15 +161,10 @@
                                         <input type="text" x-model="admin.admin_licencia" @input="saveToStorage()" placeholder="Registro profesional" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
                                         <template x-if="errors.admin_licencia"><p class="text-red-500 text-xs mt-1.5" x-text="errors.admin_licencia"></p></template>
                                     </div>
-                                    <div>
+                                    <div class="md:col-span-2">
                                         <label class="block text-sm font-medium text-gray-700 mb-1.5">Email Admin <span class="text-red-500">*</span></label>
                                         <input type="email" x-model="admin.admin_email" @input="saveToStorage()" placeholder="admin@email.com" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
                                         <template x-if="errors.admin_email"><p class="text-red-500 text-xs mt-1.5" x-text="errors.admin_email"></p></template>
-                                    </div>
-                                    <div>
-                                        <label class="block text-sm font-medium text-gray-700 mb-1.5">Teléfono <span class="text-red-500">*</span></label>
-                                        <input type="text" x-model="admin.admin_phone" @input="saveToStorage()" oninput="this.value = this.value.replace(/[^0-9]/g, '')" placeholder="Ej. 3001234567" class="block w-full px-4 py-3 rounded-xl border-gray-200 shadow-sm focus:border-blue-500 focus:ring-blue-500 transition-all">
-                                        <template x-if="errors.admin_phone"><p class="text-red-500 text-xs mt-1.5" x-text="errors.admin_phone"></p></template>
                                     </div>
                                 </div>
                             </div>
@@ -238,7 +228,6 @@
                                 <span class="text-gray-500">Nombre</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_name"></span>
                                 <span class="text-gray-500">NIT</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_nit"></span>
                                 <span class="text-gray-500">Email</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_email"></span>
-                                <span class="text-gray-500">Teléfono</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_phone"></span>
                                 <span class="text-gray-500">Ciudad</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_city"></span>
                                 <span class="text-gray-500">Dirección</span><span class="font-semibold text-gray-900 text-right" x-text="clinic.clinic_address"></span>
                             </div>
@@ -254,7 +243,6 @@
                                 <span class="text-gray-500">Documento</span><span class="font-semibold text-gray-900 text-right" x-text="admin.admin_document"></span>
                                 <span class="text-gray-500">Licencia</span><span class="font-semibold text-gray-900 text-right" x-text="admin.admin_licencia"></span>
                                 <span class="text-gray-500">Email</span><span class="font-semibold text-gray-900 text-right" x-text="admin.admin_email"></span>
-                                <span class="text-gray-500">Teléfono</span><span class="font-semibold text-gray-900 text-right" x-text="admin.admin_phone"></span>
                             </div>
                         </div>
                     </div>
@@ -297,7 +285,6 @@
                 clinic: {
                     clinic_name: '',
                     clinic_nit: '',
-                    clinic_phone: '',
                     clinic_email: '',
                     clinic_city: '',
                     clinic_address: ''
@@ -308,7 +295,6 @@
                     admin_document: '',
                     admin_licencia: '',
                     admin_email: '',
-                    admin_phone: '',
                     admin_password: '',
                     admin_password_confirmation: ''
                 },
@@ -332,8 +318,6 @@
                     if (!this.clinic.clinic_nit) this.errors.clinic_nit = 'El NIT/RUT es obligatorio.';
                     if (!this.clinic.clinic_email) this.errors.clinic_email = 'El correo electrónico es obligatorio.';
                     else if (!this.isValidEmail(this.clinic.clinic_email)) this.errors.clinic_email = 'Ingrese un correo electrónico válido.';
-                    if (!this.clinic.clinic_phone) this.errors.clinic_phone = 'El teléfono es obligatorio.';
-                    else if (this.clinic.clinic_phone.length < 7) this.errors.clinic_phone = 'El teléfono debe tener al menos 7 dígitos.';
                     if (!this.clinic.clinic_city) this.errors.clinic_city = 'La ciudad es obligatoria.';
                     if (!this.clinic.clinic_address) this.errors.clinic_address = 'La dirección es obligatoria.';
                     return Object.keys(this.errors).length === 0;
@@ -347,8 +331,6 @@
                     if (!this.admin.admin_licencia) this.errors.admin_licencia = 'El número de licencia es obligatorio.';
                     if (!this.admin.admin_email) this.errors.admin_email = 'El correo electrónico es obligatorio.';
                     else if (!this.isValidEmail(this.admin.admin_email)) this.errors.admin_email = 'Ingrese un correo electrónico válido.';
-                    if (!this.admin.admin_phone) this.errors.admin_phone = 'El teléfono es obligatorio.';
-                    else if (this.admin.admin_phone.length < 7) this.errors.admin_phone = 'El teléfono debe tener al menos 7 dígitos.';
                     if (!this.admin.admin_password) this.errors.admin_password = 'La contraseña es obligatoria.';
                     else if (this.admin.admin_password.length < 8) this.errors.admin_password = 'La contraseña debe tener al menos 8 caracteres.';
                     if (this.admin.admin_password !== this.admin.admin_password_confirmation) this.errors.admin_password_confirmation = 'La confirmación de contraseña no coincide.';
@@ -380,7 +362,6 @@
                     const payload = {
                         clinic_name: this.clinic.clinic_name,
                         clinic_nit: this.clinic.clinic_nit,
-                        clinic_phone: this.clinic.clinic_phone,
                         clinic_email: this.clinic.clinic_email,
                         clinic_city: this.clinic.clinic_city,
                         clinic_address: this.clinic.clinic_address,
@@ -389,7 +370,6 @@
                         admin_document: this.admin.admin_document,
                         admin_licencia: this.admin.admin_licencia,
                         admin_email: this.admin.admin_email,
-                        admin_phone: this.admin.admin_phone,
                         admin_password: this.admin.admin_password,
                         admin_password_confirmation: this.admin.admin_password_confirmation
                     };

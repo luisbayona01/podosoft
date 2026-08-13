@@ -19,7 +19,6 @@ class OnboardingTest extends TestCase
         $data = [
             'clinic_name' => 'Clínica Podológica Test',
             'clinic_nit' => '123456789',
-            'clinic_phone' => '1234567890',
             'clinic_email' => 'contacto@clinicatest.com',
             'clinic_city' => 'Bogotá',
             'clinic_address' => 'Calle 123 #45-67',
@@ -28,7 +27,6 @@ class OnboardingTest extends TestCase
             'admin_document' => '10101010',
             'admin_licencia' => 'LIC123',
             'admin_email' => 'admin@clinicatest.com',
-            'admin_phone' => '3001234567',
             'admin_password' => 'password123',
             'admin_password_confirmation' => 'password123',
         ];
@@ -55,9 +53,9 @@ class OnboardingTest extends TestCase
 
         $response->assertStatus(422);
         $response->assertJsonValidationErrors([
-            'clinic_name', 'clinic_nit', 'clinic_phone', 'clinic_email',
+            'clinic_name', 'clinic_nit', 'clinic_email',
             'clinic_city', 'clinic_address', 'admin_name', 'admin_apellido',
-            'admin_document', 'admin_licencia', 'admin_email', 'admin_phone',
+            'admin_document', 'admin_licencia', 'admin_email',
             'admin_password'
         ]);
     }
@@ -74,7 +72,6 @@ class OnboardingTest extends TestCase
         $data = [
             'clinic_name' => 'Clínica Podológica Test',
             'clinic_nit' => '123456789',
-            'clinic_phone' => '1234567890',
             'clinic_email' => 'contacto@clinicatest.com',
             'clinic_city' => 'Bogotá',
             'clinic_address' => 'Calle 123 #45-67',
@@ -83,7 +80,6 @@ class OnboardingTest extends TestCase
             'admin_document' => '10101010',
             'admin_licencia' => 'LIC123',
             'admin_email' => 'admin@clinicatest.com',
-            'admin_phone' => '3001234567',
             'admin_password' => 'password123',
             'admin_password_confirmation' => 'password123',
         ];
