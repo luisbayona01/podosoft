@@ -673,6 +673,190 @@ class EvolutionApiService
         }
     }
 
+    public function findContacts(string $instanceName, int $take = 100, int $skip = 0, array $where = [], array $orderBy = []): array
+    {
+        $payload = [
+            'where' => $where === [] ? new \stdClass() : $where,
+            'take' => $take,
+            'skip' => $skip,
+            'orderBy' => $orderBy === [] ? new \stdClass() : $orderBy,
+        ];
+
+        Log::info('[EvolutionApiService] findContacts', [
+            'instance' => $instanceName,
+            'take' => $take,
+            'skip' => $skip,
+        ]);
+
+        $raw = $this->postRaw('/chat/findContacts/' . $instanceName, $payload);
+
+        $status = $raw['status'];
+
+        if ($status >= 200 && $status < 300) {
+            $contacts = $raw['json'];
+
+            if (!is_array($contacts)) {
+                Log::warning('[EvolutionApiService] findContacts respuesta no es un array', [
+                    'instance' => $instanceName,
+                    'status' => $status,
+                ]);
+
+                return [
+                    'success' => false,
+                    'status' => $status,
+                    'error' => 'La respuesta de WhatsApp no fue válida.',
+                    'contacts' => [],
+                ];
+            }
+
+            return [
+                'success' => true,
+                'status' => $status,
+                'contacts' => $contacts,
+            ];
+        }
+
+        Log::error('[EvolutionApiService] findContacts falló', [
+            'instance' => $instanceName,
+            'status' => $status,
+            'body' => $raw['body'] ?? null,
+        ]);
+
+        return [
+            'success' => false,
+            'status' => $status,
+            'error' => $this->friendlyHttpError($status),
+            'http_status' => $status,
+            'contacts' => [],
+        ];
+    }
+
+    public function getAllContacts(TenantWhatsAppAccount $account, callable $onPage = null): array
+    {
+        $this->fromAccount($account);
+
+        $instanceName = $account->instance_name;
+        $take = (int) config('whatsapp-contacts.pagination_size', 100);
+        $maxPages = (int) config('whatsapp-contacts.max_pages', 250);
+
+        $contacts = [];
+        $seen = [];
+        $duplicates = 0;
+        $skip = 0;
+        $page = 0;
+
+        while ($page < $maxPages) {
+            $result = $this->findContacts($instanceName, $take, $skip, [], ['id' => 'asc']);
+
+            if (!$result['success']) {
+                return [
+                    'success' => false,
+                    'error' => $result['error'] ?? 'No fue posible conectarse con WhatsApp.',
+                    'http_status' => $result['http_status'] ?? null,
+                    'pages' => $page,
+                    'contacts' => $contacts,
+                    'duplicates' => $duplicates,
+                ];
+            }
+
+            $batch = $result['contacts'];
+
+            if (empty($batch)) {
+                break;
+            }
+
+            foreach ($batch as $contact) {
+                if (!is_array($contact)) {
+                    continue;
+                }
+
+                $key = $contact['remoteJid'] ?? $contact['id'] ?? $contact['number'] ?? null;
+
+                if ($key === null || $key === '') {
+                    $key = 'raw:' . md5(serialize($contact));
+                }
+
+                if (isset($seen[$key])) {
+                    $duplicates++;
+
+                    continue;
+                }
+
+                $seen[$key] = true;
+                $contacts[] = $contact;
+            }
+
+            $page++;
+
+            if (is_callable($onPage)) {
+                $onPage($page, count($contacts));
+            }
+
+            if (count($batch) < $take) {
+                break;
+            }
+
+            $skip += $take;
+        }
+
+        return [
+            'success' => true,
+            'pages' => $page,
+            'contacts' => $contacts,
+            'duplicates' => $duplicates,
+            'http_status' => 200,
+        ];
+    }
+
+    protected function postRaw(string $endpoint, array $data): array
+    {
+        $url = $this->baseUrl . $endpoint;
+
+        Log::info('[EvolutionApiService] POST raw request', [
+            'url' => $url,
+        ]);
+
+        try {
+            $response = Http::withHeaders([
+                'Content-Type' => 'application/json',
+                'apikey' => $this->apiKey,
+            ])->withOptions([
+                'verify' => $this->verify,
+            ])->timeout((int) config('whatsapp-contacts.request_timeout_seconds', 30))->post($url, $data);
+
+            return [
+                'status' => $response->status(),
+                'json' => $response->json(),
+                'body' => $response->body(),
+            ];
+        } catch (\Illuminate\Http\Client\ConnectionException $e) {
+            Log::error('[EvolutionApiService] POST connection error', [
+                'url' => $url,
+                'error' => $e->getMessage(),
+            ]);
+
+            return [
+                'status' => 0,
+                'json' => null,
+                'body' => null,
+                'exception' => $e->getMessage(),
+            ];
+        }
+    }
+
+    protected function friendlyHttpError(int $status): string
+    {
+        return match ($status) {
+            401, 403 => 'No fue posible autenticarse con WhatsApp. Verifica la API Key.',
+            404 => 'La instancia de WhatsApp no fue encontrada.',
+            408 => 'La conexión con WhatsApp tardó demasiado.',
+            429 => 'Demasiadas solicitudes. Intenta nuevamente en unos instantes.',
+            500, 502, 503, 504 => 'Hubo un problema en el servidor de WhatsApp.',
+            0 => 'No fue posible conectarse con WhatsApp.',
+            default => 'No fue posible conectarse con WhatsApp.',
+        };
+    }
+
     protected function get(string $endpoint, bool $raw = false): array
     {
         $url = $this->baseUrl . $endpoint;

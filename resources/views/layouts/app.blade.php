@@ -95,6 +95,17 @@
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Pacientes</span>
                         </a>
+                        <a href="{{ route('patients.import') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('patients.import') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('patients.import') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Importar pacientes</span>
+                        </a>
                         <a href="{{ route('appointments.index') }}"
                             :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
                             class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('appointments.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
@@ -213,6 +224,20 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                                 <span class="absolute -top-1 -right-1 w-2.5 h-2.5 {{ $whatsAppStatusClass }} rounded-full border-2 {{ request()->routeIs('config.whatsapp') ? 'border-blue-600' : 'border-slate-800' }}"></span>
                             </div>
                             <span x-show="!sidebarCollapsed" class="font-medium">WhatsApp</span>
+                        </a>
+                        <a href="{{ route('whatsapp.contacts') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('whatsapp.contacts') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('whatsapp.contacts') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Contactos</span>
                         </a>
                     </div>
                 </div>

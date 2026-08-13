@@ -60,4 +60,32 @@ class Paciente extends Model
     {
         return $this->antecedents()->where('is_risk', true)->exists();
     }
+
+    public function missingImportantFields(): array
+    {
+        $missing = [];
+
+        if (empty($this->tipo_documento) || empty($this->documento)) {
+            $missing[] = 'documento';
+        }
+
+        if (empty($this->telefono)) {
+            $missing[] = 'teléfono';
+        }
+
+        if (empty($this->email)) {
+            $missing[] = 'correo electrónico';
+        }
+
+        if (empty($this->fecha_nacimiento)) {
+            $missing[] = 'fecha de nacimiento';
+        }
+
+        return $missing;
+    }
+
+    public function isInformationIncomplete(): bool
+    {
+        return count($this->missingImportantFields()) > 0;
+    }
 }
