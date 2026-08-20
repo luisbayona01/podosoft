@@ -84,6 +84,32 @@ class PatientImportTest extends TestCase
     }
 
     /** @test */
+    public function imports_valid_csv_using_semicolon_delimiter()
+    {
+        $header = 'nombre;apellido;telefono;tipo_documento;documento;email;fecha_nacimiento;sexo;direccion';
+        $csv = UploadedFile::fake()->createWithContent(
+            'pacientes.csv',
+            $header . "\n" . "Maria;Gomez;3009876543;;;;;;\n"
+        );
+
+        Livewire::test(\App\Livewire\PatientImport::class)
+            ->set('file', $csv)
+            ->call('parseFile')
+            ->assertSet('step', 'preview')
+            ->call('confirmImport')
+            ->assertSet('step', 'result')
+            ->assertSet('summary.imported', 1)
+            ->assertSet('summary.found', 1);
+
+        $this->assertDatabaseHas('pacientes', [
+            'tenant_id' => $this->tenant->id,
+            'nombre' => 'Maria',
+            'apellido' => 'Gomez',
+            'telefono' => '3009876543',
+        ]);
+    }
+
+    /** @test */
     public function marks_row_as_error_when_nombre_is_empty()
     {
         $csv = $this->csv(",Perez,3001234567,,,,,,\n");
