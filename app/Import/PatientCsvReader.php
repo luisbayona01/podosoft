@@ -6,6 +6,11 @@ use RuntimeException;
 
 class PatientCsvReader
 {
+    public function __construct(
+        protected CsvDelimiterDetector $delimiterDetector,
+    ) {
+    }
+
     protected array $columnAliases = [
         'nombre' => ['nombre', 'nombre(s)', 'nombres', 'name', 'first_name', 'nombres y apellidos'],
         'apellido' => ['apellido', 'apellido(s)', 'apellidos', 'last_name', 'lastname', 'apellidos y nombres'],
@@ -26,8 +31,10 @@ class PatientCsvReader
         fwrite($handle, $content);
         rewind($handle);
 
+        $delimiter = $this->delimiterDetector->detect($content);
+
         $rawRows = [];
-        while (($data = fgetcsv($handle, 0, ',', '"', '\\')) !== false) {
+        while (($data = fgetcsv($handle, 0, $delimiter, '"', '\\')) !== false) {
             $rawRows[] = $data;
         }
 

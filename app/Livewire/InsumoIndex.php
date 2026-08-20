@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Models\Insumo;
 use App\Models\CategoriaInsumo;
+use App\Import\CsvDelimiterDetector;
 use Livewire\Component;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
@@ -33,12 +34,17 @@ class InsumoIndex extends Component
         ]);
 
         $file = $this->csvFile->getRealPath();
-        $handle = fopen($file, 'r');
+        $content = (string) file_get_contents($file);
+        $delimiter = (new CsvDelimiterDetector())->detect($content);
+
+        $handle = fopen('php://temp', 'r+');
+        fwrite($handle, $content);
+        rewind($handle);
         
-        fgetcsv($handle);
+        fgetcsv($handle, 1000, $delimiter);
 
         $importedCount = 0;
-        while (($data = fgetcsv($handle, 1000, ',')) !== FALSE) {
+        while (($data = fgetcsv($handle, 1000, $delimiter)) !== FALSE) {
             if (count($data) >= 6) {
                 Insumo::updateOrCreate(
                     ['codigo_sku' => $data[1]],
