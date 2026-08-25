@@ -57,31 +57,96 @@
             @if($activeTab === 'timeline')
                 <div class="p-4 bg-white rounded-2xl border border-slate-200 shadow-sm">
                     <div class="space-y-3 mb-4 pb-3 border-b border-slate-100">
-                        <div class="flex items-center gap-2">
-                            <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                            <h4 class="font-bold text-slate-700">Detalle de la Nota</h4>
+                        <div class="flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2">
+                                <svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                </svg>
+                                <h4 class="font-bold text-slate-700">Detalle de la Nota</h4>
+                            </div>
+                            @if(!$editMode)
+                                @if($selectedHistory->bloqueo_edicion)
+                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-400 bg-slate-100 rounded-lg cursor-not-allowed">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        Bloqueada
+                                    </span>
+                                @else
+                                    <button wire:click="startEdit"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg hover:bg-indigo-100 transition-all active:scale-95">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        Editar Nota
+                                    </button>
+                                @endif
+                            @endif
                         </div>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                            <div>
-                                <span class="text-xs font-bold text-slate-400 uppercase">Fecha</span>
-                                <p class="text-slate-700 font-medium">{{ $selectedHistory->created_at->format('d/m/Y H:i') }}</p>
+
+                        @if(session()->has('message'))
+                            <div class="p-3 bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm rounded-lg">
+                                {{ session('message') }}
                             </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-400 uppercase">Diagnóstico</span>
-                                <p class="text-slate-700 font-medium">{{ $selectedHistory->diagnostico }}</p>
+                        @endif
+                        @error('edit')
+                            <div class="p-3 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
+                                {{ $message }}
                             </div>
-                            <div>
-                                <span class="text-xs font-bold text-slate-400 uppercase">Procedimiento</span>
-                                <p class="text-slate-700">{{ $selectedHistory->procedimiento }}</p>
+                        @enderror
+
+                        @if($editMode)
+                            <form wire:submit.prevent="saveEdit" class="space-y-4">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Fecha</span>
+                                    <p class="text-slate-700 font-medium">{{ $selectedHistory->created_at->format('d/m/Y H:i') }}</p>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Diagnóstico *</label>
+                                    <textarea wire:model="editDiagnostico" rows="3"
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                    @error('editDiagnostico') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Procedimiento *</label>
+                                    <textarea wire:model="editProcedimiento" rows="3"
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                    @error('editProcedimiento') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-slate-400 uppercase mb-1">Observaciones</label>
+                                    <textarea wire:model="editObservaciones" rows="3"
+                                        class="w-full px-3 py-2 text-sm border border-slate-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"></textarea>
+                                    @error('editObservaciones') <p class="text-xs text-red-600 mt-1">{{ $message }}</p> @enderror
+                                </div>
+                                <div class="flex justify-end gap-3">
+                                    <button type="button" wire:click="cancelEdit"
+                                        class="px-4 py-2 text-sm font-medium text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition-all">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit"
+                                        class="px-4 py-2 text-sm font-bold text-white bg-indigo-600 rounded-xl hover:bg-indigo-700 transition-all active:scale-95">
+                                        Guardar Cambios
+                                    </button>
+                                </div>
+                            </form>
+                        @else
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Fecha</span>
+                                    <p class="text-slate-700 font-medium">{{ $selectedHistory->created_at->format('d/m/Y H:i') }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Diagnóstico</span>
+                                    <p class="text-slate-700 font-medium">{{ $selectedHistory->diagnostico }}</p>
+                                </div>
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Procedimiento</span>
+                                    <p class="text-slate-700">{{ $selectedHistory->procedimiento }}</p>
+                                </div>
                             </div>
-                        </div>
-                        @if($selectedHistory->observaciones)
-                            <div>
-                                <span class="text-xs font-bold text-slate-400 uppercase">Observaciones</span>
-                                <p class="text-slate-600 text-sm">{{ $selectedHistory->observaciones }}</p>
-                            </div>
+                            @if($selectedHistory->observaciones)
+                                <div>
+                                    <span class="text-xs font-bold text-slate-400 uppercase">Observaciones</span>
+                                    <p class="text-slate-600 text-sm">{{ $selectedHistory->observaciones }}</p>
+                                </div>
+                            @endif
                         @endif
                     </div>
 
