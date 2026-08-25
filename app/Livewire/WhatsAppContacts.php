@@ -37,6 +37,10 @@ class WhatsAppContacts extends Component
 
     public bool $isLoading = false;
 
+    public bool $hasMore = false;
+
+    public bool $isLoadingMore = false;
+
     public string $errorMessage = '';
 
     public string $successMessage = '';
@@ -70,31 +74,75 @@ class WhatsAppContacts extends Component
         $this->page = 1;
 
         try {
-            $result = app(WhatsAppContactsService::class)->fetchFor($this->tenantId(), $forceRefresh);
+            $result = app(WhatsAppContactsService::class)->fetchPageFor($this->tenantId(), $forceRefresh);
 
             if (!$result['ok']) {
                 $this->errorMessage = $result['error'] ?? 'No fue posible conectarse con WhatsApp.';
-                $this->contacts = [];
+                $this->contacts = $result['contacts'] ?? [];
+                $this->hasFetched = !empty($this->contacts);
+                $this->hasMore = false;
 
                 return;
             }
 
-            $this->account = $result['account'];
-            $this->contacts = $result['contacts'];
-            $this->summary = $result['summary'];
-            $this->pagesProcessed = $result['pages'];
-            $this->duplicatesFound = $result['duplicates'];
-            $this->hasFetched = true;
+            $this->hydrateFromResult($result);
 
-            $this->successMessage = $result['from_cache']
-                ? 'Contactos cargados desde la última consulta.'
-                : 'Contactos obtenidos correctamente.';
+            if ($result['from_cache'] ?? false) {
+                $this->successMessage = 'Contactos cargados desde la última consulta.';
+                $this->hasMore = false;
+            } elseif (!($result['has_more'] ?? false)) {
+                $this->successMessage = 'Contactos obtenidos correctamente.';
+            }
         } catch (\Throwable $e) {
             \Log::error('[WhatsAppContacts] Error al obtener contactos', ['error' => $e->getMessage()]);
             $this->errorMessage = 'No fue posible conectarse con WhatsApp.';
         } finally {
             $this->isLoading = false;
         }
+    }
+
+    public function loadNextPage(): void
+    {
+        if (!$this->hasMore || $this->isLoadingMore) {
+            return;
+        }
+
+        $this->isLoadingMore = true;
+        $this->errorMessage = '';
+
+        try {
+            $result = app(WhatsAppContactsService::class)->fetchPageFor($this->tenantId());
+
+            if (!$result['ok']) {
+                $this->errorMessage = $result['error'] ?? 'No fue posible conectarse con WhatsApp.';
+                $this->hasMore = false;
+
+                return;
+            }
+
+            $this->hydrateFromResult($result);
+
+            if (!($result['has_more'] ?? false)) {
+                $this->successMessage = 'Contactos obtenidos correctamente.';
+            }
+        } catch (\Throwable $e) {
+            \Log::error('[WhatsAppContacts] Error al obtener más contactos', ['error' => $e->getMessage()]);
+            $this->errorMessage = 'No fue posible conectarse con WhatsApp.';
+            $this->hasMore = false;
+        } finally {
+            $this->isLoadingMore = false;
+        }
+    }
+
+    protected function hydrateFromResult(array $result): void
+    {
+        $this->account = $result['account'] ?? $this->account;
+        $this->contacts = $result['contacts'] ?? [];
+        $this->summary = $result['summary'] ?? $this->summary;
+        $this->pagesProcessed = $result['pages'] ?? 0;
+        $this->duplicatesFound = $result['duplicates'] ?? 0;
+        $this->hasFetched = true;
+        $this->hasMore = (bool) ($result['has_more'] ?? false);
     }
 
     public function refreshContacts(): void

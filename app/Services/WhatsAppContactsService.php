@@ -128,6 +128,111 @@ class WhatsAppContactsService
         return $data;
     }
 
+    /**
+     * Obtiene UNA página de contactos y la acumula en caché.
+     * Permite cargar miles de contactos progresivamente sin timeout (504).
+     */
+    public function fetchPageFor(int $tenantId, bool $forceRefresh = false): array
+    {
+        $validated = $this->validateAccountFor($tenantId);
+
+        if (!$validated['ok']) {
+            return [
+                'ok' => false,
+                'error' => $validated['error'],
+            ];
+        }
+
+        $account = $validated['account'];
+        $cacheKey = $this->cacheKey($account);
+        $ttl = now()->addMinutes((int) config('whatsapp-contacts.cache_ttl_minutes', 10));
+
+        $data = $forceRefresh ? null : Cache::get($cacheKey);
+
+        // Dataset ya completo en caché
+        if ($data && ($data['completed'] ?? false)) {
+            $data['account'] = $this->accountSafeFields($account);
+            $data['from_cache'] = true;
+            $data['ok'] = true;
+
+            return $data;
+        }
+
+        if (!$data) {
+            $data = [
+                'contacts' => [],
+                'seen' => [],
+                'pages' => 0,
+                'duplicates' => 0,
+            ];
+        }
+
+        $take = (int) config('whatsapp-contacts.pagination_size', 100);
+        $maxPages = (int) config('whatsapp-contacts.max_pages', 250);
+        $skip = $data['pages'] * $take;
+
+        $evolution = app(EvolutionApiService::class)->fromAccount($account);
+        $result = $evolution->findContacts($account->instance_name, $take, $skip, [], ['id' => 'asc']);
+
+        if (!$result['success']) {
+            return [
+                'ok' => false,
+                'error' => $result['error'] ?? 'No fue posible conectarse con WhatsApp.',
+                'http_status' => $result['http_status'] ?? null,
+                'contacts' => $data['contacts'],
+                'summary' => $this->summarize($data['contacts']),
+                'pages' => $data['pages'],
+                'duplicates' => $data['duplicates'],
+                'has_more' => false,
+            ];
+        }
+
+        $batch = $result['contacts'];
+
+        foreach ($batch as $raw) {
+            if (!is_array($raw)) {
+                continue;
+            }
+
+            $key = $raw['remoteJid'] ?? $raw['id'] ?? $raw['number'] ?? null;
+
+            if ($key === null || $key === '') {
+                $key = 'raw:' . md5(serialize($raw));
+            }
+
+            if (isset($data['seen'][$key])) {
+                $data['duplicates']++;
+                continue;
+            }
+
+            $data['seen'][$key] = true;
+            $data['contacts'][] = $this->normalizer->normalize($raw);
+        }
+
+        $data['pages']++;
+        $hasMore = count($batch) >= $take && $data['pages'] < $maxPages;
+
+        $payload = [
+            'ok' => true,
+            'account' => $this->accountSafeFields($account),
+            'contacts' => $data['contacts'],
+            'pages' => $data['pages'],
+            'duplicates' => $data['duplicates'],
+            'summary' => $this->summarize($data['contacts']),
+            'fetched_at' => now()->toIso8601String(),
+            'from_cache' => false,
+            'has_more' => $hasMore,
+            'completed' => !$hasMore,
+            'seen' => $data['seen'],
+        ];
+
+        Cache::put($cacheKey, $payload, $ttl);
+
+        $account->update(['last_seen_at' => now()]);
+
+        return $payload;
+    }
+
     public function summarize(array $contacts): array
     {
         $personal = 0;
