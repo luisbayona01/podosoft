@@ -110,6 +110,15 @@
             @endforeach
         </div>
 
+        @if($hasMore)
+            <div wire:poll.2s="loadNextPage" class="p-4 bg-indigo-50 border-l-4 border-indigo-500 text-indigo-700 rounded-xl flex items-center gap-3 shadow-sm">
+                <svg class="animate-spin w-5 h-5 text-indigo-500 shrink-0" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path></svg>
+                <span class="text-sm font-medium">
+                    Cargando contactos de WhatsApp... <strong>{{ number_format($summary['found']) }}</strong> obtenidos hasta ahora (página {{ $pagesProcessed }}).
+                </span>
+            </div>
+        @endif
+
         <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
             <div class="px-6 py-4 border-b border-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <div class="flex items-center gap-2 w-full md:w-96">
