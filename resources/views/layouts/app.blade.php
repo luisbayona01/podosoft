@@ -239,6 +239,20 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Contactos</span>
                         </a>
+                        <a href="{{ route('config.bot-blocked-contacts') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('config.bot-blocked-contacts') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('config.bot-blocked-contacts') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="m4.9 4.9 14.2 14.2" />
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Números bloqueados</span>
+                        </a>
                     </div>
                 </div>
 

@@ -103,6 +103,7 @@ Route::middleware(['auth'])->group(function () {
 
         Route::prefix('config')->name('config.')->group(function () {
         Route::get('/whatsapp', WhatsAppConfig::class)->name('whatsapp');
+        Route::get('/bot-blocked-contacts', \App\Livewire\BotBlockedContacts::class)->name('bot-blocked-contacts');
     });
 
     Route::get('/whatsapp/contacts', \App\Livewire\WhatsAppContacts::class)

@@ -136,10 +136,11 @@ class PaymentRegister extends Component
             Pago::findOrFail($this->pagoId)->update($data);
             session()->flash('message', 'Pago actualizado correctamente.');
         } else {
-            Pago::create($data);
+            $pago = Pago::create($data);
             if ($this->cita_id) {
                 Cita::where('id', $this->cita_id)->update(['estado' => 'pagada']);
             }
+            \App\Jobs\SendPaymentReceiptPdf::dispatch($pago->id);
             session()->flash('message', 'Pago registrado exitosamente.');
         }
 

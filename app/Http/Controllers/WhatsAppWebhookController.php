@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\TenantWhatsAppAccount;
+use App\Services\BotMessageGuardService;
 use App\Services\EvolutionApiService;
 use App\Services\PodosoftKnowledgeSyncService;
 use Illuminate\Http\Request;
@@ -220,6 +221,22 @@ class WhatsAppWebhookController extends Controller
                 'instance' => $account->instance_name,
                 'tenant_id' => $account->tenant_id,
                 'reason' => $fromMe ? 'outgoing message' : 'no remoteJid',
+            ]);
+            return;
+        }
+
+        // Filtros del bot ANTES de cualquier procesamiento:
+        // - mensajes de grupos (@g.us) se descartan;
+        // - números bloqueados (bot_blocked_contacts, activos) se descartan.
+        // Nunca llegan a Python ni se responden vía Evolution API.
+        $discardReason = app(BotMessageGuardService::class)->blockedReason($remoteJid);
+
+        if ($discardReason !== null) {
+            Log::info('[WhatsAppWebhook] Message discarded by bot guard', [
+                'instance' => $account->instance_name,
+                'tenant_id' => $account->tenant_id,
+                'remoteJid' => $remoteJid,
+                'reason' => $discardReason,
             ]);
             return;
         }
