@@ -314,6 +314,48 @@ class EvolutionApiService
         }
     }
 
+    public function sendDocument(string $number, string $fileContents, string $fileName, string $caption = '', string $mimeType = 'application/pdf'): bool
+    {
+        Log::info('[EvolutionApiService] Sending document', [
+            'instance' => $this->instanceName,
+            'number' => $number,
+            'file_name' => $fileName,
+        ]);
+
+        try {
+            $url = "{$this->baseUrl}/message/sendMedia/{$this->instanceName}";
+
+            $response = Http::withHeaders([
+                'apikey' => $this->apiKey,
+            ])->withOptions([
+                'verify' => $this->verify,
+            ])->timeout(60)->post($url, [
+                'number' => $number,
+                'mediatype' => 'document',
+                'mimetype' => $mimeType,
+                'fileName' => $fileName,
+                'caption' => $caption,
+                'media' => base64_encode($fileContents),
+            ]);
+
+            if ($response->failed()) {
+                Log::error('[EvolutionApiService] Send document failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+                return false;
+            }
+
+            Log::info('[EvolutionApiService] Document sent successfully');
+            return true;
+        } catch (Exception $e) {
+            Log::error('[EvolutionApiService] Error sending document', [
+                'error' => $e->getMessage(),
+            ]);
+            return false;
+        }
+    }
+
     public function markMessageAsRead(string $instance, array $messageData): void
     {
         $key = $messageData['key'] ?? [];

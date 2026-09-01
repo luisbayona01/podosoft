@@ -239,6 +239,20 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Contactos</span>
                         </a>
+                        <a href="{{ route('config.bot-blocked-contacts') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('config.bot-blocked-contacts') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('config.bot-blocked-contacts') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <circle cx="12" cy="12" r="10" />
+                                <path d="m4.9 4.9 14.2 14.2" />
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Números bloqueados</span>
+                        </a>
                     </div>
                 </div>
 
@@ -265,10 +279,10 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                     :class="sidebarCollapsed ? 'justify-center px-0' : ''">
                     <div
                         class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-500 flex items-center justify-center text-white font-bold shadow-lg shrink-0">
-                        {{ substr(Auth::user()->name ?? 'U', 0, 1) }}
+                        {{ substr(Auth::user()->tenant->nombre ?? 'T', 0, 1) }}
                     </div>
                     <div x-show="!sidebarCollapsed" class="flex-1 min-w-0">
-                        <p class="text-sm font-bold text-white truncate">{{ Auth::user()->name ?? 'Usuario' }}</p>
+                        <p class="text-sm font-bold text-white truncate">{{ Auth::user()->tenant->nombre ?? 'Tenant' }}</p>
                         <p class="text-[11px] text-slate-500 truncate font-medium uppercase tracking-wider">
                             Administrador</p>
                     </div>
@@ -313,11 +327,11 @@ $whatsAppStatusClass = match($whatsAppStatus?->status) {
                             class="flex items-center gap-3 p-1 pr-3 rounded-full hover:bg-slate-100 transition-all duration-200 group">
                             <div
                                 class="h-9 w-9 rounded-full bg-indigo-600 flex items-center justify-center text-white font-semibold text-sm shadow-sm group-hover:shadow-indigo-200 transition-all">
-                                {{ substr(Auth::user()->name, 0, 1) }}
+                                {{ substr(Auth::user()->tenant->nombre ?? 'T', 0, 1) }}
                             </div>
                             <span
                                 class="hidden md:block text-sm font-medium text-slate-700 group-hover:text-indigo-600 transition-colors">
-                                {{ Auth::user()->name }}
+                                {{ Auth::user()->tenant->nombre ?? 'Tenant' }}
                             </span>
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
                                 fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
