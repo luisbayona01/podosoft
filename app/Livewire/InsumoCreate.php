@@ -30,6 +30,9 @@ class InsumoCreate extends Component
     #[Rule('required|string|max:20')]
     public $unidad_medida = 'unidad';
 
+    #[Rule('nullable|numeric|min:0')]
+    public $precio_venta = 0;
+
     public $attrValues = []; // Stores values: [attribute_id => value]
 
     public function updatedCategoriaId($value)
@@ -67,6 +70,7 @@ class InsumoCreate extends Component
             'stock_actual' => 'required|numeric|min:0',
             'stock_minimo' => 'required|numeric|min:0',
             'unidad_medida' => 'required|string|max:20',
+            'precio_venta' => 'nullable|numeric|min:0',
         ];
 
         $this->validate($rules);
@@ -79,6 +83,7 @@ class InsumoCreate extends Component
             'stock_actual' => $this->stock_actual,
             'stock_minimo' => $this->stock_minimo,
             'unidad_medida' => $this->unidad_medida,
+            'precio_venta' => $this->precio_venta ?? 0,
         ]);
 
         // Save dynamic attributes

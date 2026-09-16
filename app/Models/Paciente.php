@@ -49,6 +49,11 @@ class Paciente extends Model
         return $this->hasMany(HistoriaClinica::class); 
     }
 
+    public function facturas(): HasMany
+    {
+        return $this->hasMany(Factura::class);
+    }
+
     public function antecedents(): BelongsToMany
     {
         return $this->belongsToMany(AntecedentType::class, 'pacientes_antecedentes_rel', 'paciente_id', 'antecedente_tipo_id')

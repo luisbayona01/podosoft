@@ -91,11 +91,11 @@
                                 <div class="text-xs text-slate-500">{{ $pago->fecha_pago->format('H:i') }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <div class="font-semibold text-slate-900">{{ $pago->cita->paciente->nombre }} {{ $pago->cita->paciente->apellido }}</div>
-                                <div class="text-xs text-slate-500">Recibo: {{ $pago->comprobante_numero }}</div>
+                                <div class="font-semibold text-slate-900">{{ $pago->factura?->cliente_display ?? ($pago->paciente ? $pago->paciente->nombre . ' ' . $pago->paciente->apellido : ($pago->cita?->paciente ? $pago->cita->paciente->nombre . ' ' . $pago->cita->paciente->apellido : 'Cliente ocasional')) }}</div>
+                                <div class="text-xs text-slate-500">Recibo: {{ $pago->comprobante_numero }}{{ $pago->factura ? ' · Factura: ' . $pago->factura->numero_factura : '' }}</div>
                             </td>
                             <td class="px-6 py-4">
-                                <span class="text-slate-600">{{ $pago->servicio->nombre ?? 'N/A' }}</span>
+                                <span class="text-slate-600">{{ $pago->servicio->nombre ?? ($pago->factura ? $pago->factura->items->count() . ' ítem(s)' : 'N/A') }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <span class="px-2 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 uppercase tracking-tighter">

@@ -23,19 +23,29 @@
         <div class="header">
             <h1>Comprobante de Pago</h1>
             <p>{{ $tenantName }}</p>
-            <p>Sede: {{ $pago->cita->sede->nombre ?? 'Sede Principal' }}</p>
+            <p>Sede: {{ $pago->cita?->sede?->nombre ?? 'Sede Principal' }}</p>
         </div>
 
         <div class="row"><span class="label">Recibo No:</span><span class="value">{{ $pago->comprobante_numero }}</span></div>
         <div class="row"><span class="label">Fecha:</span><span class="value">{{ $pago->fecha_pago->format('d/m/Y') }}</span></div>
-        <div class="row"><span class="label">Paciente:</span><span class="value">{{ $pago->paciente->nombre }} {{ $pago->paciente->apellido }}</span></div>
+        <div class="row"><span class="label">Cliente:</span><span class="value">{{ $pago->factura?->cliente_display ?? trim(($pago->paciente?->nombre ?? '') . ' ' . ($pago->paciente?->apellido ?? '')) ?: 'Cliente ocasional' }}</span></div>
         <div class="row"><span class="label">Método de pago:</span><span class="value">{{ $pago->metodo_pago }}</span></div>
 
         <div class="section">
-            <div class="row"><span class="label">Servicio:</span><span class="value">{{ $pago->servicio->nombre ?? 'Consulta General' }}</span></div>
-            <div class="row"><span class="label">Valor base:</span><span class="value">${{ number_format($pago->valor, 0, ',', '.') }}</span></div>
-            @if($pago->descuento > 0)
-            <div class="row discount"><span class="label">Descuento:</span><span class="value">-${{ number_format($pago->descuento, 0, ',', '.') }}</span></div>
+            @if($pago->factura)
+                <div class="row"><span class="label">Factura:</span><span class="value">{{ $pago->factura->numero_factura }}</span></div>
+                @foreach($pago->factura->items as $item)
+                <div class="row"><span class="label">{{ $item->descripcion }} x{{ (float) $item->cantidad }}</span><span class="value">${{ number_format($item->subtotal, 0, ',', '.') }}</span></div>
+                @endforeach
+                @if($pago->factura->descuento > 0)
+                <div class="row discount"><span class="label">Descuentos:</span><span class="value">-${{ number_format($pago->factura->descuento, 0, ',', '.') }}</span></div>
+                @endif
+            @else
+                <div class="row"><span class="label">Servicio:</span><span class="value">{{ $pago->servicio->nombre ?? 'Consulta General' }}</span></div>
+                <div class="row"><span class="label">Valor base:</span><span class="value">${{ number_format($pago->valor, 0, ',', '.') }}</span></div>
+                @if($pago->descuento > 0)
+                <div class="row discount"><span class="label">Descuento:</span><span class="value">-${{ number_format($pago->descuento, 0, ',', '.') }}</span></div>
+                @endif
             @endif
         </div>
 

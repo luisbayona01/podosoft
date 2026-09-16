@@ -32,7 +32,7 @@ class SendPaymentReceiptPdf implements ShouldQueue
      */
     public function handle(): void
     {
-        $pago = Pago::with(['paciente', 'cita.sede', 'servicio'])->find($this->pagoId);
+        $pago = Pago::with(['paciente', 'cita.sede', 'servicio', 'factura.items'])->find($this->pagoId);
 
         if (!$pago) {
             Log::warning('[SendPaymentReceiptPdf] Pago not found', ['pago_id' => $this->pagoId]);
@@ -44,7 +44,7 @@ class SendPaymentReceiptPdf implements ShouldQueue
             return;
         }
 
-        $phone = BotBlockedContact::normalizePhone($pago->paciente->telefono ?? null);
+        $phone = BotBlockedContact::normalizePhone($pago->paciente?->telefono);
 
         if (!$phone) {
             Log::warning('[SendPaymentReceiptPdf] Patient has no phone', [
@@ -76,8 +76,12 @@ class SendPaymentReceiptPdf implements ShouldQueue
 
             $fileName = "comprobante-{$pago->comprobante_numero}.pdf";
 
+            $concepto = $pago->factura
+                ? 'Factura ' . $pago->factura->numero_factura
+                : 'Servicio: ' . ($pago->servicio->nombre ?? 'Consulta General');
+
             $caption = "🧾 Comprobante de pago {$pago->comprobante_numero}\n"
-                . "Servicio: " . ($pago->servicio->nombre ?? 'Consulta General') . "\n"
+                . $concepto . "\n"
                 . "Total: $" . number_format($pago->monto_final, 0, ',', '.') . "\n\n"
                 . "Gracias por tu pago.";
 

@@ -14,6 +14,7 @@ class InsumoEdit extends Component
     public $stock_actual;
     public $stock_minimo;
     public $unidad_medida;
+    public $precio_venta = 0;
 
     public function mount($id)
     {
@@ -25,6 +26,7 @@ class InsumoEdit extends Component
         $this->stock_actual = $insumo->stock_actual;
         $this->stock_minimo = $insumo->stock_minimo;
         $this->unidad_medida = $insumo->unidad_medida;
+        $this->precio_venta = $insumo->precio_venta ?? 0;
     }
 
     public function save()
@@ -36,6 +38,7 @@ class InsumoEdit extends Component
             'stock_actual' => 'required|numeric|min:0',
             'stock_minimo' => 'required|numeric|min:0',
             'unidad_medida' => 'required|string|max:20',
+            'precio_venta' => 'nullable|numeric|min:0',
         ]);
 
         Insumo::find($this->insumoId)->update([
@@ -45,6 +48,7 @@ class InsumoEdit extends Component
             'stock_actual' => $this->stock_actual,
             'stock_minimo' => $this->stock_minimo,
             'unidad_medida' => $this->unidad_medida,
+            'precio_venta' => $this->precio_venta ?? 0,
         ]);
 
         session()->flash('message', 'Insumo actualizado exitosamente.');

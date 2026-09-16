@@ -16,6 +16,7 @@ class Pago extends Model {
         'metodo_pago', 
         'observaciones', 
         'comprobante_numero', 
+        'factura_id',
         'estado'
     ];
 
@@ -30,4 +31,5 @@ class Pago extends Model {
     public function cita(): BelongsTo { return $this->belongsTo(Cita::class); }
     public function paciente(): BelongsTo { return $this->belongsTo(Paciente::class); }
     public function servicio(): BelongsTo { return $this->belongsTo(Servicio::class); }
+    public function factura(): BelongsTo { return $this->belongsTo(Factura::class); }
 }
