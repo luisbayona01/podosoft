@@ -17,4 +17,5 @@ class Cita extends Model {
     public function profesional(): BelongsTo { return $this->belongsTo(Profesional::class); }
     public function sede(): BelongsTo { return $this->belongsTo(Sede::class); }
     public function servicios(): BelongsToMany { return $this->belongsToMany(Servicio::class, 'cita_servicio')->withPivot('precio_aplicado'); }
+    public function facturas(): \Illuminate\Database\Eloquent\Relations\HasMany { return $this->hasMany(Factura::class); }
 }

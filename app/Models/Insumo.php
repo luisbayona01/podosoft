@@ -4,7 +4,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Insumo extends Model {
-    protected $fillable = ['tenant_id', 'categoria_id', 'nombre', 'codigo_sku', 'stock_actual', 'stock_minimo', 'unidad_medida'];
+    protected $fillable = ['tenant_id', 'categoria_id', 'nombre', 'codigo_sku', 'stock_actual', 'stock_minimo', 'unidad_medida', 'precio_venta'];
     public function tenant(): BelongsTo { return $this->belongsTo(Tenant::class); }
     public function categoria(): BelongsTo { return $this->belongsTo(CategoriaInsumo::class, 'categoria_id'); }
 

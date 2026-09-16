@@ -39,7 +39,7 @@ class FinancialsReport extends Component
             $query->where('servicio_id', $this->filterService);
         }
 
-        $payments = $query->with(['cita.paciente', 'servicio'])
+        $payments = $query->with(['paciente', 'cita.paciente', 'servicio', 'factura.items'])
             ->orderBy('fecha_pago', 'desc')
             ->paginate(15);
 

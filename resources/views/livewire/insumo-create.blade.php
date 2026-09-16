@@ -108,6 +108,13 @@
                         {{ $message }}
                     </span> @enderror
                 </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-semibold text-gray-700">Precio de Venta (opcional)</label>
+                    <input type="number" step="0.01" min="0" wire:model="precio_venta" placeholder="0"
+                        class="w-full pl-3 pr-3 py-2 rounded-lg border-gray-300 shadow-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+                    @error('precio_venta') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                </div>
             </div>
 
             <!-- Sección 3: Atributos Dinámicos -->

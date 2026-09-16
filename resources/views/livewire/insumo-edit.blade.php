@@ -48,6 +48,12 @@
             @error('stock_minimo') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
         </div>
 
+        <div class="space-y-2">
+            <label class="block text-sm font-medium text-gray-700">Precio de Venta (opcional)</label>
+            <input type="number" step="0.01" min="0" wire:model="precio_venta" class="w-full rounded-md border-gray-300 shadow-sm focus:ring-indigo-500 focus:border-indigo-500">
+            @error('precio_venta') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+        </div>
+
         <div class="md:col-span-2 flex justify-end space-x-4 mt-6">
             <a href="{{ route('insumos.index') }}" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                 Cancelar

@@ -69,6 +69,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/profile/password', ChangePassword::class)->name('profile.password');
     Route::get('/diagnostico-plantillas', \App\Livewire\DiagnosticoPlantillaManager::class)->name('diagnostico-plantillas');
     Route::get('/category-attributes/{categoria_id}', CategoryAttributeManager::class)->name('category-attributes.manage');
+    Route::prefix('invoices')->name('invoices.')->group(function () {
+        Route::get('/', \App\Livewire\InvoiceIndex::class)->name('index');
+        Route::get('/create/{citaId?}', \App\Livewire\InvoiceManager::class)->name('create');
+    });
+
     Route::prefix('payments')->name('payments.')->group(function () {
         Route::get('/create', PaymentRegister::class)->name('create');
         Route::get('/{id}/edit', PaymentRegister::class)->name('edit');

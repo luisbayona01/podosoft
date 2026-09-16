@@ -176,6 +176,20 @@
                             </svg>
                             <span x-show="!sidebarCollapsed" class="font-medium">Inventario</span>
                         </a>
+                        <a href="{{ route('invoices.index') }}"
+                            :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
+                            class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('invoices.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                stroke-linejoin="round"
+                                class="{{ request()->routeIs('invoices.*') ? 'text-white' : 'text-slate-400 group-hover:text-white' }}">
+                                <path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z" />
+                                <path d="M8 8h8" />
+                                <path d="M8 12h8" />
+                                <path d="M8 16h5" />
+                            </svg>
+                            <span x-show="!sidebarCollapsed" class="font-medium">Facturas</span>
+                        </a>
                         <a href="{{ route('financials.report') }}"
                             :class="sidebarCollapsed ? 'justify-center gap-0 px-0' : 'gap-3 px-3'"
                             class="flex items-center py-2.5 rounded-xl transition-all duration-200 group {{ request()->routeIs('financials.*') ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'hover:bg-slate-800 hover:text-white' }}">
