@@ -22,6 +22,7 @@ class InvoiceManager extends Component
     public $sin_paciente = false;
     public $cliente_nombre = '';
     public $cliente_documento = '';
+    public $cliente_telefono = '';
 
     // Origen (opcional)
     public $cita_id = null;
@@ -189,6 +190,7 @@ class InvoiceManager extends Component
             'paciente_id' => ['nullable', 'exists:pacientes,id', 'required_unless:sin_paciente,true'],
             'cliente_nombre' => ['nullable', 'string', 'max:255', 'required_if:sin_paciente,true'],
             'cliente_documento' => ['nullable', 'string', 'max:50'],
+            'cliente_telefono' => ['nullable', 'string', 'min:7', 'max:20', 'required_if:sin_paciente,true'],
             'cita_id' => ['nullable', 'exists:citas,id'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.cantidad' => ['required', 'numeric', 'min:0.01'],
@@ -199,6 +201,7 @@ class InvoiceManager extends Component
         ], [
             'paciente_id.required_unless' => 'Seleccione un paciente o marque "Facturar sin paciente".',
             'cliente_nombre.required_if' => 'Ingrese el nombre del cliente.',
+            'cliente_telefono.required_if' => 'Ingrese el número de WhatsApp del cliente.',
             'items.required' => 'Agregue al menos un servicio o producto a la factura.',
         ]);
 
@@ -224,7 +227,39 @@ class InvoiceManager extends Component
         }
 
         $tenantId = auth()->user()->tenant_id ?? 1;
-        $pacienteId = $this->sin_paciente ? null : $this->paciente_id;
+
+        // Cliente ocasional: registrar (o reutilizar) el paciente en la base
+        // de datos con su teléfono, para que quede disponible en WhatsApp.
+        if ($this->sin_paciente) {
+            $paciente = Paciente::where('tenant_id', $tenantId)
+                ->when($this->cliente_documento, fn ($q) => $q->where('documento', $this->cliente_documento))
+                ->when(!$this->cliente_documento, fn ($q) => $q->where('telefono', $this->cliente_telefono))
+                ->first();
+
+            if (!$paciente) {
+                [$nombre, $apellido] = array_pad(explode(' ', trim($this->cliente_nombre), 2), 2, '');
+                $paciente = Paciente::create([
+                    'tenant_id' => $tenantId,
+                    'nombre' => $nombre,
+                    'apellido' => $apellido,
+                    'documento' => $this->cliente_documento ?: null,
+                    'telefono' => $this->cliente_telefono,
+                ]);
+            } else {
+                // Actualizar datos básicos si estaban vacíos
+                $paciente->fill(array_filter([
+                    'telefono' => $paciente->telefono ?: $this->cliente_telefono,
+                    'documento' => $paciente->documento ?: ($this->cliente_documento ?: null),
+                ]));
+                if ($paciente->isDirty()) {
+                    $paciente->save();
+                }
+            }
+
+            $this->paciente_id = $paciente->id;
+        }
+
+        $pacienteId = $this->paciente_id;
         $pagoId = null;
 
         DB::transaction(function () use ($tenantId, $pacienteId, &$pagoId) {

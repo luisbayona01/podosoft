@@ -17,6 +17,45 @@ class InvoiceIndex extends Component
     public $search = '';
     public $estado = '';
 
+    // Modal para enviar factura por WhatsApp cuando el paciente no tiene teléfono
+    public $whatsappFacturaId = null;
+    public $whatsappPhone = '';
+
+    public function enviarWhatsApp($id)
+    {
+        $factura = Factura::with('paciente')->findOrFail($id);
+        $phone = $factura->paciente?->telefono;
+
+        if ($phone) {
+            \App\Jobs\SendFacturaPdf::dispatch($factura->id, $phone);
+            session()->flash('message', 'Factura ' . $factura->numero_factura . ' enviada por WhatsApp.');
+            return;
+        }
+
+        // El paciente no tiene teléfono: solicitar el número
+        $this->whatsappFacturaId = $factura->id;
+        $this->whatsappPhone = '';
+    }
+
+    public function confirmarEnvioWhatsApp()
+    {
+        $this->validate([
+            'whatsappPhone' => 'required|string|min:7|max:20',
+        ]);
+
+        $factura = Factura::with('paciente')->findOrFail($this->whatsappFacturaId);
+
+        // Si hay paciente registrado, guardar el teléfono para futuros envíos
+        if ($factura->paciente) {
+            $factura->paciente->update(['telefono' => $this->whatsappPhone]);
+        }
+
+        \App\Jobs\SendFacturaPdf::dispatch($factura->id, $this->whatsappPhone);
+
+        $this->reset(['whatsappFacturaId', 'whatsappPhone']);
+        session()->flash('message', 'Factura ' . $factura->numero_factura . ' enviada por WhatsApp.');
+    }
+
     public function anular($id)
     {
         $factura = Factura::with('items', 'pagos')->findOrFail($id);

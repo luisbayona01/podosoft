@@ -63,7 +63,13 @@
                             <label class="text-sm font-semibold text-slate-700">Documento / NIT <span class="text-slate-400 font-normal">(opcional)</span></label>
                             <input type="text" wire:model="cliente_documento" class="w-full py-2 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none">
                         </div>
+                        <div class="space-y-1">
+                            <label class="text-sm font-semibold text-slate-700">WhatsApp / Teléfono</label>
+                            <input type="text" wire:model="cliente_telefono" class="w-full py-2 px-3 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none" placeholder="Ej: 573001234567">
+                            @error('cliente_telefono') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
                     </div>
+                    <p class="text-xs text-slate-400">El cliente quedará registrado en tu base de datos y podrás enviarle facturas por WhatsApp.</p>
                 @endif
             </div>
 

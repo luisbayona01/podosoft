@@ -80,6 +80,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'Cliente Ocasional')
+            ->set('cliente_telefono', '573001112233')
             ->set('registrar_pago', false)
             ->set('nuevoServicioId', $servicio->id)
             ->call('save')
@@ -87,7 +88,12 @@ class InvoiceFlowTest extends TestCase
 
         $factura = Factura::latest('id')->first();
 
-        $this->assertNull($factura->paciente_id);
+        // El cliente ocasional queda registrado como paciente con su teléfono
+        $this->assertNotNull($factura->paciente_id);
+        $paciente = \App\Models\Paciente::find($factura->paciente_id);
+        $this->assertEquals('573001112233', $paciente->telefono);
+        $this->assertEquals('Cliente', $paciente->nombre);
+        $this->assertEquals('Ocasional', $paciente->apellido);
         $this->assertNull($factura->cita_id);
         $this->assertEquals('Cliente Ocasional', $factura->cliente_nombre);
         $this->assertEquals(30000, $factura->total);
@@ -112,6 +118,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'X')
+            ->set('cliente_telefono', '573001112233')
             ->set('registrar_pago', false)
             ->call('save')
             ->assertHasErrors(['items']);
@@ -124,6 +131,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'Comprador')
+            ->set('cliente_telefono', '573001112233')
             ->set('nuevoInsumoId', $insumo->id)
             ->set('items.0.cantidad', 2)
             ->call('save');
@@ -150,6 +158,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'Comprador')
+            ->set('cliente_telefono', '573001112233')
             ->set('nuevoInsumoId', $insumo->id)
             ->set('items.0.cantidad', 5)
             ->call('save');
@@ -166,6 +175,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'Cliente Mixto')
+            ->set('cliente_telefono', '573001112233')
             ->set('nuevoServicioId', $servicio->id)
             ->set('nuevoInsumoId', $insumo->id)
             ->call('save');
@@ -229,6 +239,7 @@ class InvoiceFlowTest extends TestCase
         Livewire::test(InvoiceManager::class)
             ->set('sin_paciente', true)
             ->set('cliente_nombre', 'Comprador')
+            ->set('cliente_telefono', '573001112233')
             ->set('nuevoInsumoId', $insumo->id)
             ->call('save');
 
