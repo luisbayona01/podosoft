@@ -66,7 +66,11 @@
                                     {{ ucfirst($factura->estado) }}
                                 </span>
                             </td>
-                            <td class="px-4 py-3 text-right">
+                            <td class="px-4 py-3 text-right whitespace-nowrap">
+                                <a href="{{ route('invoices.pdf', $factura->id) }}"
+                                    class="text-xs font-medium text-indigo-600 hover:underline mr-3">PDF</a>
+                                <button wire:click="enviarWhatsApp({{ $factura->id }})"
+                                    class="text-xs font-medium text-emerald-600 hover:underline mr-3">WhatsApp</button>
                                 @if($factura->estado !== 'anulada')
                                     <button wire:click="anular({{ $factura->id }})"
                                         wire:confirm="¿Anular esta factura? Se revertirán el pago y el inventario."
@@ -85,4 +89,27 @@
 
         <div class="mt-4">{{ $facturas->links() }}</div>
     </div>
+
+    {{-- Modal: solicitar número de WhatsApp cuando el paciente no tiene teléfono --}}
+    @if($whatsappFacturaId)
+        <div class="fixed inset-0 z-50 flex items-center justify-center bg-black/40" wire:keydown.escape="$set('whatsappFacturaId', null)">
+            <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6" wire:click.stop>
+                <h3 class="text-lg font-semibold text-slate-900 mb-1">Enviar por WhatsApp</h3>
+                <p class="text-sm text-slate-500 mb-4">El paciente no tiene número registrado. Ingresa el número de WhatsApp con código de país (ej. 573001234567).</p>
+
+                <input type="text" wire:model="whatsappPhone" placeholder="Número de WhatsApp"
+                    class="w-full py-2 px-3 bg-white border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500 outline-none text-sm mb-1">
+                @error('whatsappPhone')
+                    <p class="text-xs text-red-500 mb-2">{{ $message }}</p>
+                @enderror
+
+                <div class="flex justify-end gap-2 mt-4">
+                    <button wire:click="$set('whatsappFacturaId', null)"
+                        class="px-4 py-2 text-sm font-medium text-slate-600 bg-slate-100 rounded-lg hover:bg-slate-200">Cancelar</button>
+                    <button wire:click="confirmarEnvioWhatsApp"
+                        class="px-4 py-2 text-sm font-semibold text-white bg-emerald-600 rounded-lg hover:bg-emerald-700">Enviar</button>
+                </div>
+            </div>
+        </div>
+    @endif
 </div>

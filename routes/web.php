@@ -72,6 +72,7 @@ Route::middleware(['auth'])->group(function () {
     Route::prefix('invoices')->name('invoices.')->group(function () {
         Route::get('/', \App\Livewire\InvoiceIndex::class)->name('index');
         Route::get('/create/{citaId?}', \App\Livewire\InvoiceManager::class)->name('create');
+        Route::get('/{id}/pdf', [\App\Http\Controllers\InvoicePdfController::class, 'download'])->name('pdf');
     });
 
     Route::prefix('payments')->name('payments.')->group(function () {
