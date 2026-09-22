@@ -12,4 +12,5 @@ class Tenant extends Model {
     public function servicios(): HasMany { return $this->hasMany(Servicio::class); }
     public function whatsAppAccounts(): HasMany { return $this->hasMany(TenantWhatsAppAccount::class); }
     public function activeWhatsAppAccount(): HasMany { return $this->hasMany(TenantWhatsAppAccount::class)->where('status', 'connected'); }
+    public function googleCalendarConnection(): \Illuminate\Database\Eloquent\Relations\HasOne { return $this->hasOne(GoogleCalendarConnection::class); }
 }

@@ -5,7 +5,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 
 class Cita extends Model {
-    protected $fillable = ['tenant_id', 'paciente_id', 'profesional_id', 'sede_id', 'fecha_hora', 'estado', 'origen'];
+    protected $fillable = ['tenant_id', 'paciente_id', 'profesional_id', 'sede_id', 'fecha_hora', 'estado', 'origen', 'google_event_id'];
 
     protected $casts = [
         'fecha_hora' => 'datetime',

@@ -110,6 +110,14 @@ Route::middleware(['auth'])->group(function () {
         Route::prefix('config')->name('config.')->group(function () {
         Route::get('/whatsapp', WhatsAppConfig::class)->name('whatsapp');
         Route::get('/bot-blocked-contacts', \App\Livewire\BotBlockedContacts::class)->name('bot-blocked-contacts');
+        Route::get('/google-calendar', \App\Livewire\GoogleCalendarConfig::class)->name('google-calendar');
+    });
+
+    Route::prefix('google/calendar')->name('google.calendar.')->group(function () {
+        Route::get('/redirect', [\App\Http\Controllers\GoogleCalendarController::class, 'redirect'])->name('redirect');
+        Route::get('/callback', [\App\Http\Controllers\GoogleCalendarController::class, 'callback'])->name('callback');
+        Route::post('/disconnect', [\App\Http\Controllers\GoogleCalendarController::class, 'disconnect'])->name('disconnect');
+        Route::get('/status', [\App\Http\Controllers\GoogleCalendarController::class, 'status'])->name('status');
     });
 
     Route::get('/whatsapp/contacts', \App\Livewire\WhatsAppContacts::class)
