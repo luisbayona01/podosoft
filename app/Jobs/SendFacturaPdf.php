@@ -24,7 +24,9 @@ class SendFacturaPdf implements ShouldQueue
     public function __construct(
         public int $facturaId,
         public string $phone,
-    ) {}
+    ) {
+        $this->onQueue('facturas');
+    }
 
     /**
      * Generates the invoice thermal PDF and sends it to the given
