@@ -76,6 +76,14 @@ class SendPaymentReceiptPdf implements ShouldQueue
                 'tenantName' => $tenantName,
             ]);
 
+            $pdfContents = $pdf->output();
+
+            Log::info('[SendPaymentReceiptPdf] PDF generated', [
+                'pago_id' => $pago->id,
+                'pdf_bytes' => strlen($pdfContents),
+                'factura_id' => $pago->factura_id,
+            ]);
+
             $fileName = "comprobante-{$pago->comprobante_numero}.pdf";
 
             $concepto = $pago->factura
@@ -89,7 +97,7 @@ class SendPaymentReceiptPdf implements ShouldQueue
 
             $sent = app(EvolutionApiService::class)
                 ->fromAccount($account)
-                ->sendDocument($phone, $pdf->output(), $fileName, $caption);
+                ->sendDocument($phone, $pdfContents, $fileName, $caption);
 
             Log::info('[SendPaymentReceiptPdf] Receipt sent', [
                 'pago_id' => $pago->id,

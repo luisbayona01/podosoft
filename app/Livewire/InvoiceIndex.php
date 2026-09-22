@@ -27,7 +27,7 @@ class InvoiceIndex extends Component
         $phone = $factura->paciente?->telefono;
 
         if ($phone) {
-            \App\Jobs\SendFacturaPdf::dispatch($factura->id, $phone);
+            \App\Jobs\SendFacturaPdf::dispatch($factura->id, $phone)->afterCommit();
             session()->flash('message', 'Factura ' . $factura->numero_factura . ' enviada por WhatsApp.');
             return;
         }
@@ -50,7 +50,7 @@ class InvoiceIndex extends Component
             $factura->paciente->update(['telefono' => $this->whatsappPhone]);
         }
 
-        \App\Jobs\SendFacturaPdf::dispatch($factura->id, $this->whatsappPhone);
+        \App\Jobs\SendFacturaPdf::dispatch($factura->id, $this->whatsappPhone)->afterCommit();
 
         $this->reset(['whatsappFacturaId', 'whatsappPhone']);
         session()->flash('message', 'Factura ' . $factura->numero_factura . ' enviada por WhatsApp.');
