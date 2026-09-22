@@ -42,6 +42,12 @@ Route::get('/', function () {
 
 Route::get('/r/{code}', [ShortLinkController::class, 'redirect'])->name('shortlink.redirect');
 
+// Páginas legales públicas (requeridas para la verificación OAuth de Google)
+Route::view('/politica-de-privacidad', 'legal.privacy')->name('legal.privacy');
+Route::view('/terminos-de-servicio', 'legal.terms')->name('legal.terms');
+Route::view('/privacy-policy', 'legal.privacy');
+Route::view('/terms-of-service', 'legal.terms');
+
 Route::get('/login', Login::class)->name('login');
 Route::get('/register', function () { return view('onboarding'); })->name('register');
 Route::post('/register/submit', [OnboardingController::class, 'submit'])->name('register.submit');
