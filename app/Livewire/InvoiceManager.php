@@ -342,7 +342,7 @@ class InvoiceManager extends Component
         });
 
         if ($pagoId) {
-            \App\Jobs\SendPaymentReceiptPdf::dispatch($pagoId);
+            \App\Jobs\SendPaymentReceiptPdf::dispatch($pagoId)->afterCommit();
         }
 
         session()->flash('message', $this->registrar_pago ? 'Factura creada y pago registrado correctamente.' : 'Factura creada como borrador.');

@@ -140,7 +140,7 @@ class PaymentRegister extends Component
             if ($this->cita_id) {
                 Cita::where('id', $this->cita_id)->update(['estado' => 'pagada']);
             }
-            \App\Jobs\SendPaymentReceiptPdf::dispatch($pago->id);
+            \App\Jobs\SendPaymentReceiptPdf::dispatch($pago->id)->afterCommit();
             session()->flash('message', 'Pago registrado exitosamente.');
         }
 

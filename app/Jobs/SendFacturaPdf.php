@@ -66,6 +66,14 @@ class SendFacturaPdf implements ShouldQueue
         try {
             $pdf = InvoicePdfController::buildPdf($factura);
 
+            $pdfContents = $pdf->output();
+
+            Log::info('[SendFacturaPdf] PDF generated', [
+                'factura_id' => $factura->id,
+                'pdf_bytes' => strlen($pdfContents),
+                'items' => $factura->items->count(),
+            ]);
+
             $fileName = "factura-{$factura->numero_factura}.pdf";
 
             $caption = "🧾 Factura {$factura->numero_factura}\n"
@@ -74,7 +82,7 @@ class SendFacturaPdf implements ShouldQueue
 
             $sent = app(EvolutionApiService::class)
                 ->fromAccount($account)
-                ->sendDocument($phone, $pdf->output(), $fileName, $caption);
+                ->sendDocument($phone, $pdfContents, $fileName, $caption);
 
             Log::info('[SendFacturaPdf] Invoice sent', [
                 'factura_id' => $factura->id,
