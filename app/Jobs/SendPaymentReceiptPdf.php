@@ -24,7 +24,9 @@ class SendPaymentReceiptPdf implements ShouldQueue
 
     public function __construct(
         public int $pagoId,
-    ) {}
+    ) {
+        $this->onQueue('facturas');
+    }
 
     /**
      * Generates the payment receipt PDF and sends it to the patient's

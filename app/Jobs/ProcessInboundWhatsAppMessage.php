@@ -9,6 +9,7 @@ use App\Models\TenantWhatsAppAccount;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Queue\Middleware\WithoutOverlapping;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
@@ -16,7 +17,7 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
 {
     use InteractsWithQueue, Queueable, SerializesModels;
 
-    public int $tries = 1;
+    public int $tries = 10;
 
     public int $timeout = 240;
 
@@ -26,7 +27,29 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
         public string $message,
         public int $tenantId,
         public string $tenantSlug = '',
-    ) {}
+    ) {
+        $this->onQueue('bot');
+    }
+
+    /**
+     * Serialize processing per WhatsApp conversation (tenant + phone).
+     *
+     * The lock key isolates a single conversation: other conversations of the
+     * same tenant and other tenants can be processed in parallel by other
+     * workers. When the lock is held, the job is released back to the queue
+     * after 5s (this is why tries > 1) instead of running concurrently.
+     *
+     * expireAfter() must exceed $timeout so a stuck job cannot leave a
+     * zombie lock behind.
+     */
+    public function middleware(): array
+    {
+        return [
+            (new WithoutOverlapping("wa-conv:{$this->tenantId}:{$this->phone}"))
+                ->releaseAfter(5)
+                ->expireAfter(300),
+        ];
+    }
 
     /**
      * Process the inbound message through the AI agent and reply over WhatsApp.
