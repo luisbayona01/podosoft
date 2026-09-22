@@ -261,8 +261,9 @@ class InvoiceManager extends Component
 
         $pacienteId = $this->paciente_id;
         $pagoId = null;
+        $facturaId = null;
 
-        DB::transaction(function () use ($tenantId, $pacienteId, &$pagoId) {
+        DB::transaction(function () use ($tenantId, $pacienteId, &$pagoId, &$facturaId) {
             $factura = Factura::create([
                 'tenant_id' => $tenantId,
                 'paciente_id' => $pacienteId,
@@ -280,6 +281,8 @@ class InvoiceManager extends Component
 
             $factura->numero_factura = 'FAC-' . str_pad($factura->id, 6, '0', STR_PAD_LEFT);
             $factura->save();
+
+            $facturaId = $factura->id;
 
             foreach ($this->items as $item) {
                 $subtotal = max(0, ((float) $item['cantidad'] * (float) $item['precio']) - (float) $item['descuento']);
@@ -342,7 +345,14 @@ class InvoiceManager extends Component
         });
 
         if ($pagoId) {
-            \App\Jobs\SendPaymentReceiptPdf::dispatch($pagoId)->afterCommit();
+            // Envío automático: misma factura térmica que el envío manual.
+            $phone = $pacienteId ? (Paciente::find($pacienteId)?->telefono) : null;
+
+            if ($phone && $facturaId) {
+                \App\Jobs\SendFacturaPdf::dispatch($facturaId, $phone)->afterCommit();
+            } else {
+                \App\Jobs\SendPaymentReceiptPdf::dispatch($pagoId)->afterCommit();
+            }
         }
 
         session()->flash('message', $this->registrar_pago ? 'Factura creada y pago registrado correctamente.' : 'Factura creada como borrador.');
