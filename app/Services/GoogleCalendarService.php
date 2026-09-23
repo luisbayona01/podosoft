@@ -15,7 +15,8 @@ use RuntimeException;
 class GoogleCalendarService
 {
     public const SCOPES = [
-        Calendar::CALENDAR_EVENTS,
+        Calendar::CALENDAR,         // listar/leer calendarios (CalendarList.List)
+        Calendar::CALENDAR_EVENTS,  // crear/actualizar/eliminar eventos
         Oauth2::USERINFO_EMAIL,
     ];
 
@@ -28,10 +29,16 @@ class GoogleCalendarService
         $client->setClientId(config('services.google.client_id'));
         $client->setClientSecret(config('services.google.client_secret'));
         $client->setRedirectUri(config('services.google.redirect_uri'));
-        $client->setScopes(self::SCOPES);
+
+        // addScope (no setScopes) para asegurar que todos los scopes
+        // se incluyan en la URL de autorización.
+        foreach (self::SCOPES as $scope) {
+            $client->addScope($scope);
+        }
+
         $client->setAccessType('offline');
         $client->setIncludeGrantedScopes(true);
-        $client->setPrompt('consent'); // ensures a refresh_token is issued
+        $client->setPrompt('select_account consent'); // siempre emite refresh_token
 
         return $client;
     }
