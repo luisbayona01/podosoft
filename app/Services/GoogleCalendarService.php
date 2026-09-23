@@ -257,8 +257,13 @@ class GoogleCalendarService
 
     protected function mapCitaToEvent(Cita $cita): Event
     {
+        $tz = config('app.timezone', 'America/Bogota');
+
         $servicio = $cita->servicios()->first();
         $paciente = $cita->paciente;
+
+        $startCarbon = $cita->fecha_hora->copy()->setTimezone($tz);
+        $endCarbon = $cita->fecha_hora->copy()->addMinutes(30)->setTimezone($tz);
 
         $event = new Event();
         $event->setSummary('Cita: ' . trim(($paciente?->nombre ?? '') . ' ' . ($paciente?->apellido ?? '')));
@@ -269,12 +274,25 @@ class GoogleCalendarService
         ])));
 
         $start = new EventDateTime();
-        $start->setDateTime($cita->fecha_hora->format(\DateTime::RFC3339));
+        $start->setDateTime($startCarbon->format('Y-m-d\TH:i:s')); // hora local, sin desplazar
+        $start->setTimeZone($tz);                                   // Google aplica la zona de negocio
         $event->setStart($start);
 
         $end = new EventDateTime();
-        $end->setDateTime($cita->fecha_hora->copy()->addMinutes(30)->format(\DateTime::RFC3339));
+        $end->setDateTime($endCarbon->format('Y-m-d\TH:i:s'));
+        $end->setTimeZone($tz);
         $event->setEnd($end);
+
+        // Log temporal para validar la zona horaria en la sincronización
+        Log::debug('[GoogleCalendar] mapCitaToEvent', [
+            'appointment_id' => $cita->id,
+            'fecha_bd' => \DB::table('citas')->where('id', $cita->id)->value('fecha_hora'),
+            'carbon' => $cita->fecha_hora->toDateTimeString(),
+            'carbon_tz' => $cita->fecha_hora->timezone->getName(),
+            'start_enviado' => $start->getDateTime(),
+            'end_enviado' => $end->getDateTime(),
+            'timezone_enviado' => $tz,
+        ]);
 
         return $event;
     }
