@@ -6,6 +6,16 @@
             <p class="text-slate-500 text-sm">Gestiona tus citas, horarios y disponibilidad de profesionales.</p>
         </div>
         <div class="flex gap-3">
+            <div class="flex bg-slate-100 rounded-lg p-1">
+                <button wire:click="setViewMode('list')"
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition {{ $viewMode === 'list' ? 'bg-white shadow text-indigo-600' : 'text-slate-500 hover:text-slate-700' }}">
+                    Lista
+                </button>
+                <button wire:click="setViewMode('calendar')"
+                    class="px-3 py-1.5 text-sm font-medium rounded-md transition {{ $viewMode === 'calendar' ? 'bg-white shadow text-indigo-600' : 'text-slate-500 hover:text-slate-700' }}">
+                    Calendario
+                </button>
+            </div>
             <a href="{{ route('appointments.create') }}" class="px-4 py-2.5 bg-indigo-600 text-white text-sm font-semibold rounded-lg hover:bg-indigo-700 transition-all shadow-sm flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
                 Agendar Cita
@@ -167,7 +177,76 @@
         </div>
     </div>
 
-    <!-- Appointments Table -->
+    <!-- Appointments Table / Calendar -->
+    @if($viewMode === 'calendar')
+    <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden p-4" wire:ignore>
+        <div id="podocalendar"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/locales/es.global.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const el = document.getElementById('podocalendar');
+            if (!el || typeof FullCalendar === 'undefined') return;
+
+            const events = @js($calendarEvents);
+
+            const calendar = new FullCalendar.Calendar(el, {
+                initialView: 'timeGridWeek',
+                locale: 'es',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+                },
+                buttonText: {
+                    today: 'Hoy',
+                    month: 'Mes',
+                    week: 'Semana',
+                    day: 'Día',
+                    list: 'Agenda'
+                },
+                slotMinTime: '06:00:00',
+                slotMaxTime: '21:00:00',
+                slotDuration: '00:15:00',
+                nowIndicator: true,
+                allDaySlot: false,
+                height: 'auto',
+                expandRows: true,
+                dayMaxEventRows: 4,
+                eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+                events: events,
+                eventClick: function (info) {
+                    info.jsEvent.preventDefault();
+                    if (info.event.extendedProps.editUrl) {
+                        window.location.href = info.event.extendedProps.editUrl;
+                    }
+                },
+                eventDidMount: function (info) {
+                    info.el.title = info.event.title + '\n' +
+                        'Estado: ' + (info.event.extendedProps.estado || '') +
+                        (info.event.extendedProps.servicios ? '\n' + info.event.extendedProps.servicios : '');
+                }
+            });
+
+            calendar.render();
+        });
+    </script>
+    <style>
+        /* Apariencia cercana a Google Calendar */
+        #podocalendar .fc { font-family: 'Instrument Sans', sans-serif; }
+        #podocalendar .fc-toolbar-title { font-size: 1.25rem; font-weight: 700; color: #0f172a; }
+        #podocalendar .fc-button { background: #fff; color: #475569; border: 1px solid #e2e8f0; text-transform: capitalize; font-size: .8rem; font-weight: 600; border-radius: .5rem; padding: .35rem .8rem; }
+        #podocalendar .fc-button:hover { background: #f1f5f9; color: #0f172a; }
+        #podocalendar .fc-button-primary:not(:disabled).fc-button-active { background: #4f46e5; border-color: #4f46e5; color: #fff; }
+        #podocalendar .fc-col-header-cell-cushion { font-size: .75rem; text-transform: uppercase; color: #64748b; font-weight: 600; }
+        #podocalendar .fc-timegrid-slot { height: 2em; }
+        #podocalendar .fc-event { border: none; border-radius: 6px; padding: 2px 4px; font-size: .75rem; font-weight: 600; box-shadow: 0 1px 2px rgba(0,0,0,.08); cursor: pointer; }
+        #podocalendar .fc-day-today { background: #eef2ff !important; }
+        #podocalendar .fc-now-indicator-line { border-color: #ef4444; }
+    </style>
+    @else
     <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         <div class="overflow-x-auto">
             <table class="w-full text-left border-collapse">
@@ -256,4 +335,5 @@
     <div class="mt-6">
         {{ $appointments->links() }}
     </div>
+    @endif
 </div>

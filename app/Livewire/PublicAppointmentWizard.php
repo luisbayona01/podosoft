@@ -359,6 +359,8 @@ class PublicAppointmentWizard extends Component
 
             $this->citaCreada = $cita;
 
+            \App\Jobs\CreateGoogleCalendarEvent::dispatch($cita->id)->afterCommit();
+
             $whatsappPhone = $this->patient->telefono ?? $this->phone;
 
             if ($whatsappPhone) {

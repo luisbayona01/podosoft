@@ -102,6 +102,8 @@ class AppointmentManager extends Component
                 'fecha_hora' => $this->fecha_hora,
             ]);
             $message = 'Cita actualizada exitosamente.';
+
+            \App\Jobs\UpdateGoogleCalendarEvent::dispatch($cita->id)->afterCommit();
         } else {
             $cita = Cita::create([
                 'tenant_id' => auth()->user()->tenant_id ?? 1,
@@ -117,6 +119,8 @@ class AppointmentManager extends Component
                 'precio_aplicado' => $servicio->precio
             ]);
             $message = 'Cita agendada exitosamente.';
+
+            \App\Jobs\CreateGoogleCalendarEvent::dispatch($cita->id)->afterCommit();
         }
 
         session()->flash('message', $message);

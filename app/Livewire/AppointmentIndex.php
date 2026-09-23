@@ -20,6 +20,10 @@ class AppointmentIndex extends Component
         $cita = Cita::findOrFail($citaId);
         $cita->update(['estado' => strtolower($newStatus)]);
         session()->flash('message', "Cita actualizada a $newStatus");
+
+        if ($cita->google_event_id) {
+            \App\Jobs\UpdateGoogleCalendarEvent::dispatch($cita->id)->afterCommit();
+        }
     }
 
     public function cancelAppointment($citaId)
@@ -27,6 +31,10 @@ class AppointmentIndex extends Component
         $cita = Cita::findOrFail($citaId);
         $cita->update(['estado' => 'cancelada']);
         session()->flash('message', 'Cita cancelada exitosamente');
+
+        if ($cita->google_event_id) {
+            \App\Jobs\DeleteGoogleCalendarEvent::dispatch($cita->id)->afterCommit();
+        }
     }
 
     public function setViewMode($mode)
@@ -67,8 +75,7 @@ class AppointmentIndex extends Component
     {
         $tenant_id = auth()->user()->tenant_id ?? 1;
 
-        $appointments = Cita::with(['paciente', 'profesional', 'sede'])
-            ->where('tenant_id', $tenant_id)
+        $appointments = Cita::with(['paciente', 'profesional', 'sede'])            ->where('tenant_id', $tenant_id)
             ->when($this->search, function($q) {
                 $q->whereHas('paciente', function($pq) {
                     $pq->where('nombre', 'like', '%' . $this->search . '%')
@@ -91,9 +98,46 @@ class AppointmentIndex extends Component
             ->orderBy('fecha_hora', 'asc')
             ->get();
 
+        $calendarEvents = [];
+
+        if ($this->viewMode === 'calendar') {
+            $statusColors = [
+                'pendiente' => '#f59e0b',
+                'confirmada' => '#3b82f6',
+                'pagada' => '#10b981',
+                'completada' => '#059669',
+                'cancelada' => '#ef4444',
+                'no_asistio' => '#f97316',
+            ];
+
+            $calendarEvents = Cita::with(['paciente', 'profesional', 'servicios'])
+                ->where('tenant_id', $tenant_id)
+                ->whereBetween('fecha_hora', [now()->subMonths(3), now()->addMonths(3)])
+                ->get()
+                ->map(function ($cita) use ($statusColors) {
+                    return [
+                        'id' => $cita->id,
+                        'title' => trim(($cita->paciente?->nombre ?? '') . ' ' . ($cita->paciente?->apellido ?? '')),
+                        'start' => $cita->fecha_hora->toIso8601String(),
+                        'end' => $cita->fecha_hora->copy()->addMinutes(30)->toIso8601String(),
+                        'color' => $statusColors[strtolower($cita->estado)] ?? '#64748b',
+                        'extendedProps' => [
+                            'estado' => $cita->estado,
+                            'profesional' => $cita->profesional?->nombre ?? 'Sin asignar',
+                            'servicios' => $cita->servicios->pluck('nombre')->join(', '),
+                            'sede' => $cita->sede?->nombre ?? '',
+                            'editUrl' => route('appointments.edit', $cita->id),
+                        ],
+                    ];
+                })
+                ->values()
+                ->all();
+        }
+
         return view('livewire.appointment-index', [
             'appointments' => $appointments,
             'todayAppointments' => $todayAppointments,
+            'calendarEvents' => $calendarEvents,
             'metrics' => $this->getMetrics()
         ]);
     }
