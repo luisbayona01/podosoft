@@ -129,7 +129,9 @@ class GoogleCalendarIntegrationTest extends TestCase
 
         $this->assertStringStartsWith('https://accounts.google.com/o/oauth2/', $target);
         $this->assertStringContainsString('access_type=offline', urldecode($target));
-        $this->assertStringContainsString('prompt=consent', urldecode($target));
+        $this->assertStringContainsString('prompt=select_account consent', urldecode($target));
+        $this->assertStringContainsString(urlencode('https://www.googleapis.com/auth/calendar'), $target);
+        $this->assertStringContainsString(urlencode('https://www.googleapis.com/auth/calendar.events'), $target);
         $this->assertNotNull(session('google_calendar_oauth_state'));
     }
 
