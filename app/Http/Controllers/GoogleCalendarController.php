@@ -73,8 +73,17 @@ class GoogleCalendarController extends Controller
             $account = $this->google->getAccountInfo($token['access_token']);
             $calendars = $this->google->listCalendars($token['access_token']);
 
-            // Prefer the primary calendar by default
-            $calendarId = array_key_exists('primary', $calendars) ? 'primary' : array_key_first($calendars);
+            // Solo calendarios con permiso de escritura; preferir el principal
+            $calendarId = $this->google->resolveDefaultCalendar($calendars);
+
+            if (!$calendarId) {
+                Log::warning('[GoogleCalendar] No writable calendar found', [
+                    'tenant_id' => $tenantId,
+                ]);
+
+                return redirect()->route('config.google-calendar')
+                    ->with('error', 'No se encontró un calendario con permisos de escritura en la cuenta de Google.');
+            }
 
             GoogleCalendarConnection::updateOrCreate(
                 ['tenant_id' => $tenantId],
@@ -93,6 +102,7 @@ class GoogleCalendarController extends Controller
             Log::info('[GoogleCalendar] Connected', [
                 'tenant_id' => $tenantId,
                 'google_email' => $account['email'],
+                'calendar_id' => $calendarId,
             ]);
 
             return redirect()->route('config.google-calendar')

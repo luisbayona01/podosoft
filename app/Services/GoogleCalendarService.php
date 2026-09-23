@@ -100,9 +100,10 @@ class GoogleCalendarService
     }
 
     /**
-     * List the user's calendars (summary => id) using a valid access token.
+     * List the user's calendars where the account has WRITE access.
+     * Read-only calendars (holidays, contacts, shared read-only) are excluded.
      *
-     * @return array<string, string>
+     * @return array<int, array{id: string, summary: string, primary: bool, access_role: string}>
      */
     public function listCalendars(string $accessToken): array
     {
@@ -113,10 +114,40 @@ class GoogleCalendarService
         $calendars = [];
 
         foreach ($service->calendarList->listCalendarList()->getItems() as $cal) {
-            $calendars[$cal->getId()] = $cal->getSummary();
+            if (!in_array($cal->getAccessRole(), ['owner', 'writer'], true)) {
+                continue; // read-only calendar (holidays, etc.) -> skip
+            }
+
+            $calendars[] = [
+                'id' => $cal->getId(),
+                'summary' => $cal->getSummary(),
+                'primary' => (bool) $cal->getPrimary(),
+                'access_role' => $cal->getAccessRole(),
+            ];
         }
 
         return $calendars;
+    }
+
+    /**
+     * Resolve the calendar to use: the primary writable calendar, or the
+     * first writable one as fallback.
+     *
+     * @param array<int, array{id: string, summary: string, primary: bool, access_role: string}> $calendars
+     */
+    public function resolveDefaultCalendar(array $calendars): ?string
+    {
+        if (empty($calendars)) {
+            return null;
+        }
+
+        foreach ($calendars as $cal) {
+            if ($cal['primary']) {
+                return $cal['id'];
+            }
+        }
+
+        return $calendars[0]['id'];
     }
 
     /**
@@ -174,12 +205,30 @@ class GoogleCalendarService
 
     public function createEvent(GoogleCalendarConnection $connection, Cita $cita): string
     {
+        $calendarId = $connection->calendar_id ?: 'primary';
         $calendar = new Calendar($this->clientFor($connection));
 
-        $event = $this->mapCitaToEvent($cita);
-        $created = $calendar->events->insert($connection->calendar_id ?: 'primary', $event);
+        try {
+            $event = $this->mapCitaToEvent($cita);
+            $created = $calendar->events->insert($calendarId, $event);
 
-        return $created->getId();
+            Log::info('[GoogleCalendar] Event created', [
+                'tenant_id' => $connection->tenant_id,
+                'cita_id' => $cita->id,
+                'calendar_id' => $calendarId,
+                'google_event_id' => $created->getId(),
+            ]);
+
+            return $created->getId();
+        } catch (\Throwable $e) {
+            Log::error('[GoogleCalendar] Event create failed', [
+                'tenant_id' => $connection->tenant_id,
+                'cita_id' => $cita->id,
+                'calendar_id' => $calendarId,
+                'error' => $e->getMessage(),
+            ]);
+            throw $e;
+        }
     }
 
     public function updateEvent(GoogleCalendarConnection $connection, Cita $cita): void
