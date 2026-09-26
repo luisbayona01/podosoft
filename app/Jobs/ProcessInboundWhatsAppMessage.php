@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Services\EvolutionApiService;
 use App\Services\PodosoftAIService;
 use App\Models\ConversacionIA;
+use App\Models\BotBlockedContact;
 use App\Models\TenantWhatsAppAccount;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -100,6 +101,8 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
             return;
         }
 
+        $requiresHuman = (bool) ($result['data']['requires_human'] ?? false);
+
         Log::info('[AgentJob] Agent reply generated', [
             'phone' => $this->phone,
             'tenant_id' => $this->tenantId,
@@ -129,6 +132,39 @@ class ProcessInboundWhatsAppMessage implements ShouldQueue
                 'error' => $e->getMessage(),
             ]);
         }
+
+        if ($requiresHuman) {
+            $this->escalateToHuman();
+        }
+    }
+
+    /**
+     * Escalation to a human agent: the bot stops answering this phone number
+     * (blocked with reason 'human_request') until a human reactivates it from
+     * the Livewire panel (Configuración → Contactos bloqueados).
+     */
+    private function escalateToHuman(): void
+    {
+        $normalized = BotBlockedContact::normalizePhone($this->phone);
+        if ($normalized === null) {
+            return;
+        }
+
+        BotBlockedContact::updateOrCreate(
+            ['phone' => $normalized],
+            ['reason' => 'human_request', 'active' => true]
+        );
+
+        // Marcar la conversación activa (si existe) como requerida por humano
+        ConversacionIA::where('telefono', $this->phone)
+            ->where('tenant_id', $this->tenantId)
+            ->where('estado', '!=', 'cerrada')
+            ->update(['requiere_humano' => true]);
+
+        Log::warning('[AgentJob] Conversation escalated to human', [
+            'phone' => $this->phone,
+            'tenant_id' => $this->tenantId,
+        ]);
     }
 
     /**

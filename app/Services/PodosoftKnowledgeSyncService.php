@@ -56,6 +56,7 @@ class PodosoftKnowledgeSyncService
                     'nombre' => $s->nombre,
                     'duracion' => $s->duracion,
                     'precio' => $s->precio,
+                    'indicaciones' => $s->indicaciones,
                 ])
                 ->values()
                 ->toArray(),

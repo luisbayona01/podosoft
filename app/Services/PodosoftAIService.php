@@ -135,10 +135,12 @@ class PodosoftAIService implements AIServiceInterface
             'action'  => $body['action_taken'] ?? 'UNKNOWN',
             'message' => $body['reply'] ?? '',
             'data'    => [
-                'phone'      => $context['telefono'] ?? $context['phone'] ?? '',
-                'tenant_id'  => $context['tenant_id'] ?? 0,
-                'tool_calls' => $body['tool_calls'] ?? [],
-                'snapshot'   => $body['context_snapshot'] ?? [],
+                'phone'          => $context['telefono'] ?? $context['phone'] ?? '',
+                'tenant_id'      => $context['tenant_id'] ?? 0,
+                'tool_calls'     => $body['tool_calls'] ?? [],
+                'snapshot'       => $body['context_snapshot'] ?? [],
+                'requires_human' => (bool) ($body['requires_human'] ?? false),
+                'interactive'    => $body['interactive'] ?? null,
             ],
         ];
     }

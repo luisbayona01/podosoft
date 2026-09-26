@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant.resolve' => ResolveTenantAndConversation::class,
             'debug.signature' => DebugSignatureMiddleware::class,
+            'service.token' => \App\Http\Middleware\VerifyServiceToken::class,
         ]);
 
         $middleware->trustProxies(

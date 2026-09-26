@@ -71,6 +71,12 @@ return [
         'token' => env('PYTHON_AI_TOKEN'),
     ],
 
+    'laravel' => [
+        // Token que debe enviar el microservicio Python (podosoft-ai)
+        // en el header X-Service-Token al consumir /api/v1/*
+        'service_token' => env('LARAVEL_SERVICE_TOKEN'),
+    ],
+
     'google' => [
         'client_id' => env('GOOGLE_CLIENT_ID'),
         'client_secret' => env('GOOGLE_CLIENT_SECRET'),

@@ -90,7 +90,7 @@ class SendAppointmentReminders extends Command
         return Cita::with(['paciente', 'profesional', 'servicios', 'sede'])
             ->whereDate('fecha_hora', $date)
             ->where('fecha_hora', '>', now())
-            ->whereIn('estado', ['pendiente', 'confirmada', 'pagada'])
+            ->whereIn('estado', ['pendiente', 'confirmada', 'pagada', 'Pendiente', 'Confirmada', 'Pagada'])
             ->whereHas('paciente', fn ($q) => $q->whereNotNull('telefono')->where('telefono', '!=', ''))
             ->when($recordadasCitaIds->isNotEmpty(), fn ($q) => $q->whereNotIn('id', $recordadasCitaIds))
             ->orderBy('fecha_hora', 'asc')
@@ -122,6 +122,9 @@ class SendAppointmentReminders extends Command
         }
         if ($sede) {
             $message .= "📍 Sede: {$sede->nombre}\n";
+        }
+        if ($servicio && !empty($servicio->indicaciones)) {
+            $message .= "\n📋 Antes de tu cita: {$servicio->indicaciones}\n";
         }
 
         $message .= "\nTe esperamos. Si no puedes asistir, por favor avísanos con antelación.";
